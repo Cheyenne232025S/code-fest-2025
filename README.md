@@ -4,13 +4,14 @@
 
 ## 🏗️ Architecture Overview
 
-### System Diagram
+### 🧭 System Diagram
+
 ```mermaid
 flowchart LR
-  User[User in Browser] --> UI[React Web App]
-  UI --> API[FastAPI Backend]
-  API --> DB[(Postgres Database)]
-  API --> Storage[(File Storage / Images)]
+    User[User in Browser] --> UI[React Web App]
+    UI --> API[FastAPI Backend]
+    API --> DB[(Postgres Database)]
+    API --> Storage[(File Storage / Images)]
 
 ### 🧠 API
 
