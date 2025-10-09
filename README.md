@@ -6,7 +6,7 @@
 
 ### 🧭 System Diagram
 
-````mermaid
+```mermaid
 flowchart LR
     User[User in Browser] --> UI[React Web App]
     UI --> API[FastAPI Backend]
@@ -15,7 +15,7 @@ flowchart LR
 
 ### 🧠 API
 
-Our `app/main.py` script serves as a simple API:
-- It loads datasets from `/data/`
+Our 'app/main.py' script serves as a simple API:
+- It loads datasets from '/data/'
 - It filters data by user input (e.g., state name)
 - It prints or returns results for analysis
