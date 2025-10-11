@@ -20,17 +20,41 @@
   padding: 2rem;
   background: #1C1C1C;
   min-height: 100vh;
+  box-sizing: border-box; /* ensure padding counts toward size */
 }
 
+/* make the card scroll internally if it grows taller than the viewport */
 .survey-card {
   background: white;
   padding: 2rem 3rem 4rem;
   border-radius: 12px;
   box-sizing: border-box;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+  max-height: calc(100vh - 4rem); /* leave some space for page padding */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* prevent any child from forcing horizontal scroll */
+.survey-card * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
 
+/* small-screen tweak: reduce paddings so more fits without scrolling too far */
+@media (max-width: 480px) {
+  .survey-card {
+    padding: 1rem;
+    margin: 0.5rem;
+    max-height: calc(100vh - 2rem);
+    border-radius: 10px;
+  }
+
+  .button-row {
+    gap: 0.5rem;
+  }
+}
 
 .survey-title {
   text-align: center;
@@ -121,4 +145,66 @@
 
 h2 {
   color: #B41F3A; /* Marriott red */
+}
+
+/* ensure the document can scroll when content is taller than the viewport */
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: auto; /* allow page scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* scrollbar color variables (easy to adjust) */
+:root {
+  --scrollbar-bg: rgba(0,0,0,0.06);
+  --scrollbar-thumb: rgba(0,0,0,0.22);
+  --scrollbar-thumb-hover: rgba(0,0,0,0.32);
+  --scrollbar-radius: 8px;
+  --scrollbar-width: 10px;
+}
+
+/* Firefox: set thin and colors */
+.survey-card,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+}
+
+/* WebKit-based browsers (Chrome, Edge, Safari) */
+.survey-card::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+.survey-card::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+  border-radius: var(--scrollbar-radius);
+  margin: 4px; /* give a little breathing room on tracks */
+}
+
+.survey-card::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--scrollbar-radius);
+  border: 2px solid transparent; /* create padding between thumb and track */
+  background-clip: padding-box;
+}
+
+/* hover / active states for better affordance */
+.survey-card::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+.survey-card::-webkit-scrollbar-thumb:active,
+body::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-hover);
+  transform: translateZ(0); /* hint for smoother rendering */
+}
+
+/* make sure very small devices still have usable thumb */
+@media (max-width: 480px) {
+  :root {
+    --scrollbar-width: 8px;
+  }
 }
