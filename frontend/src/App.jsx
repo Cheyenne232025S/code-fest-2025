@@ -1,21 +1,17 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Header from './Header'
-
+import { Routes, Route } from "react-router-dom";
+import "./App.css";
+import Questionaire from "./Questionaire/Questionaire";
+import Map from "./Map/Map";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <div className="header-container">
-        <h1>Testing</h1>
-        <p></p>
-      </div>
+      <Routes>
+        <Route path="/" element={<Questionaire />} />
+        <Route path="/map" element={<Map />} />
+      </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
