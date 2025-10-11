@@ -12,7 +12,7 @@ app = FastAPI(title="Survey API")
 # Allow requests from React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # adjust to your frontend URL
+    allow_origins=["http://localhost:5174"],  # adjust to your frontend URL
     allow_methods=["*"],
     allow_headers=["*"],
 )
