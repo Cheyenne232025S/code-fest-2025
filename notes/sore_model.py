@@ -131,6 +131,7 @@ hotel_rows = []
 reco_rows  = []
 
 for _, hrow in hotels.iterrows():
+    print(hrow.index.tolist())
     hotel_name = hrow["hotel_name"]
     group = rest_groups.get(hotel_name, pd.DataFrame())
 
