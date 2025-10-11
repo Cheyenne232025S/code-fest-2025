@@ -1,0 +1,19 @@
+# Ignore raw and processed datasets
+data/raw/
+data/processed/
+
+# But keep your scripts!
+!data/scripts/
+
+# Ignore notebooks & local config
+notes/
+*.ipynb
+*.tar
+*.zip
+*.parquet
+*.duckdb
+*.json
+
+# Ignore virtual environment
+.venv/
+

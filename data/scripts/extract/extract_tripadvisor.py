@@ -16,6 +16,7 @@ def extract_tripadvisor(city="New York", category="Restaurants", pages=3):
     results = []
 
     for page in range(pages):
+        time.sleep(random.uniform(3, 6))
         offset = page * 30  # each page has 30 results
         url = base_url.replace(".html", f"-oa{offset}.html") if page > 0 else base_url
         headers = {'User-Agent': ua.random}
