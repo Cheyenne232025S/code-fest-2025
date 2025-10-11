@@ -5,6 +5,8 @@ function Survey() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [savedResponses, setSavedResponses] = useState([]);
+  // track whether the first response was already saved (persisted)
+  const [firstSaved, setFirstSaved] = useState(false);
 
   // Define questions — supports "single", "multiple", and "text"
   const questions = [
@@ -31,7 +33,34 @@ function Survey() {
   useEffect(() => {
     const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
     setSavedResponses(existing);
+    // If there is any saved response, consider the "first" already saved.
+    const persistedFlag = localStorage.getItem("surveyFirstSaved");
+    if (persistedFlag === "true" || existing.length > 0) {
+      setFirstSaved(true);
+      localStorage.setItem("surveyFirstSaved", "true");
+    }
   }, []);
+
+  // Auto-save the FIRST completion when the user reaches the summary
+  useEffect(() => {
+    // summary is shown when step is questions.length + 1
+    if (step === questions.length + 1) {
+      // if first already saved, do nothing
+      if (localStorage.getItem("surveyFirstSaved") === "true") return;
+
+      const payload = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        answers,
+      };
+      const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
+      const updated = [payload, ...existing];
+      localStorage.setItem("surveyResponses", JSON.stringify(updated));
+      localStorage.setItem("surveyFirstSaved", "true");
+      setSavedResponses(updated);
+      setFirstSaved(true);
+    }
+  }, [step]); // run when step changes
 
   // Handle input changes for different question types
   const handleChange = (questionId, value, isMultiple) => {
@@ -54,6 +83,7 @@ function Survey() {
     setAnswers((prev) => ({ ...prev, [questionId]: [value] }));
   };
 
+  // Handle navigation
   const handleNext = () => {
     setStep(step + 1);
   };
@@ -62,7 +92,23 @@ function Survey() {
     if (step > 0) setStep(step - 1);
   };
 
+  // go back one step (safe for summary and question views)
+  const goToPrevious = () => {
+    setStep((prev) => Math.max(0, prev - 1));
+  };
+
+  // restart survey: clear answers and return to intro
+  const restartSurvey = () => {
+    setAnswers({});
+    setStep(0);
+  };
+
   const saveCurrentResponse = () => {
+    // only allow saving if first hasn't been saved yet
+    if (localStorage.getItem("surveyFirstSaved") === "true") {
+      // already saved the first response — do not save additional ones
+      return;
+    }
     const payload = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
@@ -71,7 +117,9 @@ function Survey() {
     const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
     const updated = [payload, ...existing];
     localStorage.setItem("surveyResponses", JSON.stringify(updated));
+    localStorage.setItem("surveyFirstSaved", "true");
     setSavedResponses(updated);
+    setFirstSaved(true);
   };
 
   const clearSavedResponses = () => {
@@ -106,6 +154,32 @@ function Survey() {
       // clearSavedResponses();
     } catch (err) {
       // handle/send error to user
+    }
+  };
+
+  // Helper: return true only if every question has an answer (text must be non-empty)
+  const allAnswered = () => {
+    return questions.every((q) => {
+      const ans = answers[q.id];
+      if (!ans || ans.length === 0) return false;
+      if (q.type === "text") return (ans[0] || "").toString().trim().length > 0;
+      return true;
+    });
+  };
+
+  // submit handler: ensure all answered, send, then navigate to /map
+  const handleSubmit = async () => {
+    if (!allAnswered()) {
+      alert("Please answer all questions before submitting.");
+      return;
+    }
+    try {
+      await sendToBackend({ id: Date.now(), timestamp: new Date().toISOString(), answers });
+    } catch (e) {
+      // ignore send errors for now
+    } finally {
+      // navigate to /map (works without depending on react-router version)
+      window.location.href = "/map";
     }
   };
 
@@ -197,24 +271,25 @@ function Survey() {
             </ul>
 
             <div className="button-row">
-              <button className="btn btn-outline" onClick={saveCurrentResponse}>
-                Save response
+              {/* go back to the previous question from the summary */}
+              <button className="btn btn-secondary" onClick={goToPrevious}>
+                Previous question
+              </button>
+              {!firstSaved && (
+                <button className="btn btn-outline" onClick={saveCurrentResponse}>
+                  Save response
+                </button>
+              )}
+              {/* allow restarting from the summary (styled like the old Clear saved button) */}
+              <button className="btn btn-danger" onClick={restartSurvey}>
+                Restart survey
               </button>
               <button
-                className="btn btn-outline"
-                onClick={async () => {
-                  try {
-                    await sendToBackend({ id: Date.now(), timestamp: new Date().toISOString(), answers });
-                  } catch (e) {}
-                }}
+                className="btn"
+                style={{ backgroundColor: "#28a745", color: "white" }}
+                onClick={handleSubmit}
               >
-                Send response now
-              </button>
-              <button className="btn btn-outline" onClick={sendSavedResponses}>
-                Send all saved
-              </button>
-              <button className="btn btn-danger" onClick={clearSavedResponses}>
-                Clear saved
+                Submit survey
               </button>
             </div>
 

@@ -1,20 +1,34 @@
-# Ignore raw and processed datasets
-data/raw/
-data/processed/
+# === DATA ===
+# Ignore all raw and heavy datasets
+data/raw/*
+data/processed/*
 
-# But keep your scripts!
-!data/scripts/
+# Keep curated small JSONs (like osm_ and yelp_ exports)
+!data/raw/osm_*.json
+!data/raw/yelp_*.json
 
-# Ignore notebooks & local config
-notes/
-*.ipynb
+# Keep all scripts
+!data/scripts/**
+
+# Ignore intermediate / heavy formats
 *.tar
 *.zip
+*.csv
 *.parquet
 *.duckdb
-*.json
+*.gz
 
-# Ignore virtual environment
+# === PYTHON ===
 .venv/
+__pycache__/
+*.pyc
 
-.env
+# === NODE / FRONTEND ===
+node_modules/
+dist/
+frontend/node_modules/
+frontend/dist/
+
+# === MISC ===
+*.log
+.DS_Store
