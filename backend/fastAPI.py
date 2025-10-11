@@ -13,7 +13,7 @@ app = FastAPI(title="Survey API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[],  # leave empty when using regex below
-    allow_origin_regex=r"^http://localhost:517\d$",  # allow localhost:5170 - localhost:5179
+    allow_origin_regex=r"^http://localhost:517\d$",  # adjust to your frontend URL
     allow_methods=["*"],
     allow_headers=["*"],
 )
