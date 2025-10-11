@@ -23,10 +23,28 @@ function Survey() {
     },
     {
       id: 3,
-      text: "What’s reason of your travel?",
+      text: "What’s your reason for travel?",
       type: "single",
       options: ["Business", "Solo", "Family", "Friends"],
     },
+    {
+      id: 4,
+      text: "Cuisine Preference?",
+      type: "multiple",
+      options: ["Italian", "Chinese", "Mexican", "Greek", "Halal", "French", "Thai", "Korean"],
+    },
+    {
+      id: 5, 
+      text: "Yelp Rating?",
+      type: "single",
+      options: ["1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars"],
+    }, 
+    {
+      id: 6,
+      text: "Price Range:",
+      type: "single",
+      options: ["$20/person", "$40/person", "$80/person", "Ritzy"],
+    }
   ];
 
   // Load saved responses from localStorage on mount
