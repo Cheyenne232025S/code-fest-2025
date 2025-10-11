@@ -12,7 +12,8 @@ app = FastAPI(title="Survey API")
 # Allow requests from React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # adjust to your frontend URL
+    allow_origins=[],  # leave empty when using regex below
+    allow_origin_regex=r"^http://localhost:517\d$",  # allow localhost:5170 - localhost:5179
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -42,4 +43,13 @@ def submit_response(response: SurveyResponse):
         "status": "success",
         "message": "Echoing received payload",
         "data": response.model_dump()
+    }
+
+@app.post("/llm/")
+def llm_endpoint(payload: dict):
+    # Process the payload as needed
+    return {
+        "status": "success",
+        "message": "LLM endpoint received",
+        "data": 
     }
