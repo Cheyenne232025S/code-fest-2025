@@ -13,23 +13,24 @@
     border-radius: 50px;
 } */
  
-.survey-container {
+.survey-container { 
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   padding: 2rem;
-  /* background: #B41F3A; */
   background: #1C1C1C;
   min-height: 100vh;
 }
 
 .survey-card {
   background: white;
-  padding: 2rem 3rem;
+  padding: 2rem 3rem 4rem;
   border-radius: 12px;
+  box-sizing: border-box;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
-  width: 100%;
 }
+
+
 
 .survey-title {
   text-align: center;
@@ -109,10 +110,15 @@
   list-style: none;
   padding-left: 0;
   margin-top: 1rem;
+  color:#000000;
 }
 
 .answers-list li,
 .saved-list li {
   margin-bottom: 0.75rem;
   line-height: 1.4;
+}
+
+h2 {
+  color: #B41F3A; /* Marriott red */
 }

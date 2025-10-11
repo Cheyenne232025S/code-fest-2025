@@ -184,8 +184,8 @@ function Survey() {
           </div>
         ) : (
           <div className="survey-summary">
-            <h2>🎉 Thank you!</h2>
-            <p>Here’s a summary of your responses:</p>
+            <h2>Thank you!</h2>
+            <p style={{ color: "#B41F3A" }}>Here’s a summary of your responses:</p>
             <ul className="answers-list">
               {questions.map((q) => (
                 <li key={q.id}>
@@ -229,6 +229,7 @@ function Survey() {
             </ul>
           </div>
         )}
+        
       </div>
     </div>
   );
