@@ -3,6 +3,10 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Dict
 from fastapi.middleware.cors import CORSMiddleware
+from LLM_test import get_family_friendly_hotels
+import json
+from fastapi import FastAPI, Request
+from LLM_test import get_family_friendly_hotels  # make sure this function exists
 
 # -------------------
 # Initialize FastAPI
@@ -12,7 +16,8 @@ app = FastAPI(title="Survey API")
 # Allow requests from React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # adjust to your frontend URL
+    allow_origins=[],  # leave empty when using regex below
+    allow_origin_regex=r"^http://localhost:517\d$",  # adjust to your frontend URL
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -42,4 +47,21 @@ def submit_response(response: SurveyResponse):
         "status": "success",
         "message": "Echoing received payload",
         "data": response.model_dump()
+    }
+
+
+
+# @app.get("/llm/")
+# def llm_endpoint():
+#     response_text = get_family_friendly_hotels()
+#     return { "data": response_text }
+
+
+@app.post("/llm/")
+def llm_endpoint():
+    # Process the payload as needed and return it as a string
+    return {
+        "status": "success",
+        "message": "LLM endpoint received",
+        "data": get_family_friendly_hotels()
     }

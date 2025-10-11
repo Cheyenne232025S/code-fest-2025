@@ -49,13 +49,30 @@ function Survey() {
 
   // Load saved responses from localStorage on mount
   useEffect(() => {
-    const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
+    let existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
+    // enforce max 1 saved response (keep most recent if array is present)
+    if (existing.length > 1) {
+      existing = [existing[0]];
+      try {
+        localStorage.setItem("surveyResponses", JSON.stringify(existing));
+      } catch (err) {
+        // ignore storage errors
+      }
+    }
     setSavedResponses(existing);
-    // If there is any saved response, consider the "first" already saved.
-    const persistedFlag = localStorage.getItem("surveyFirstSaved");
-    if (persistedFlag === "true" || existing.length > 0) {
-      setFirstSaved(true);
-      localStorage.setItem("surveyFirstSaved", "true");
+    // reflect whether there are saved responses (UI only)
+    setFirstSaved(existing.length > 0);
+
+    // restore draft (per-question autosave) if present
+    try {
+      const draft = JSON.parse(localStorage.getItem("surveyDraft") || "null");
+      if (draft && draft.answers) {
+        setAnswers(draft.answers);
+        // always start at the beginning page on reload
+        setStep(0);
+      }
+    } catch (err) {
+      // ignore parse errors
     }
   }, []);
 
@@ -63,23 +80,49 @@ function Survey() {
   useEffect(() => {
     // summary is shown when step is questions.length + 1
     if (step === questions.length + 1) {
-      // if first already saved, do nothing
-      if (localStorage.getItem("surveyFirstSaved") === "true") return;
-
+      // Replace stored responses with a single (most recent) payload
       const payload = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
         answers,
       };
-      const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
-      const updated = [payload, ...existing];
-      localStorage.setItem("surveyResponses", JSON.stringify(updated));
-      localStorage.setItem("surveyFirstSaved", "true");
+      const updated = [payload]; // only keep this one
+      try {
+        localStorage.setItem("surveyResponses", JSON.stringify(updated));
+      } catch (err) {
+        // ignore storage errors
+      }
       setSavedResponses(updated);
       setFirstSaved(true);
+      localStorage.removeItem("surveyDraft");
     }
   }, [step]); // run when step changes
 
+  // Auto-save draft after each question change (answers or step)
+  useEffect(() => {
+    // only save drafts once the user has started (step > 0)
+    if (step <= 0) return;
+    // don't save an empty answers object
+    if (!answers || Object.keys(answers).length === 0) {
+      localStorage.removeItem("surveyDraft");
+      return;
+    }
+
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([k, v]) => [String(k), v])
+    );
+    const draft = {
+      timestamp: new Date().toISOString(),
+      step,
+      answers: normalizedAnswers,
+    };
+    try {
+      localStorage.setItem("surveyDraft", JSON.stringify(draft));
+    } catch (err) {
+      // ignore quota/storage issues
+    }
+  }, [answers, step, questions.length]);
+ 
   // Handle input changes for different question types
   const handleChange = (questionId, value, isMultiple) => {
     setAnswers((prev) => {
@@ -115,29 +158,33 @@ function Survey() {
     setStep((prev) => Math.max(0, prev - 1));
   };
 
-  // restart survey: clear answers and return to intro
   const restartSurvey = () => {
     setAnswers({});
     setStep(0);
+    // clear any draft when restarting
+    localStorage.removeItem("surveyDraft");
   };
 
   const saveCurrentResponse = () => {
-    // only allow saving if first hasn't been saved yet
-    if (localStorage.getItem("surveyFirstSaved") === "true") {
-      // already saved the first response — do not save additional ones
-      return;
-    }
+    // Always allow explicit manual save. Replace stored responses with this one (max=1).
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([k, v]) => [String(k), v])
+    );
     const payload = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
-      answers,
+      answers: normalizedAnswers,
     };
-    const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
-    const updated = [payload, ...existing];
-    localStorage.setItem("surveyResponses", JSON.stringify(updated));
-    localStorage.setItem("surveyFirstSaved", "true");
+    const updated = [payload]; // enforce single saved response
+    try {
+      localStorage.setItem("surveyResponses", JSON.stringify(updated));
+    } catch (err) {
+      // ignore storage errors
+    }
     setSavedResponses(updated);
     setFirstSaved(true);
+    // clear draft after manual full save
+    localStorage.removeItem("surveyDraft");
   };
 
   const clearSavedResponses = () => {
@@ -172,6 +219,7 @@ function Survey() {
       // handle/send error to user
     }
   };
+
 
   // Helper: return true only if every question has an answer (text must be non-empty)
   const allAnswered = () => {
@@ -218,6 +266,22 @@ function Survey() {
     }
   };
 
+  // Load the single saved response (if any) and show the summary
+  const handleLoadSaved = () => {
+    // prefer in-memory state, fallback to localStorage
+    const existing = savedResponses.length
+      ? savedResponses
+      : JSON.parse(localStorage.getItem("surveyResponses") || "[]");
+    if (!existing || existing.length === 0) {
+      alert("No saved response found.");
+      return;
+    }
+    const saved = existing[0];
+    // set answers and jump to the summary view
+    setAnswers(saved.answers || {});
+    setStep(questions.length + 1);
+  };
+
   return (
     <div className="survey-container">
       <div className="survey-card">
@@ -229,6 +293,11 @@ function Survey() {
             <p style={{ color: "#B41F3A" }}>
               Help us personalize your travel experience. This quick survey takes less than a minute.
             </p>
+            <div style={{ marginBottom: 12 }}>
+              <button className="btn btn-outline" onClick={handleLoadSaved}>
+                I've already filled this survey
+              </button>
+            </div>
             <button className="btn btn-primary" onClick={handleNext}>
               Start Survey
             </button>
@@ -310,11 +379,10 @@ function Survey() {
               <button className="btn btn-secondary" onClick={goToPrevious}>
                 Previous question
               </button>
-              {!firstSaved && (
-                <button className="btn btn-outline" onClick={saveCurrentResponse}>
-                  Save response
-                </button>
-              )}
+              {/* allow explicit saving even if previous saves exist */}
+              <button className="btn btn-outline" onClick={saveCurrentResponse}>
+                Save response
+              </button>
               {/* allow restarting from the summary (styled like the old Clear saved button) */}
               <button className="btn btn-danger" onClick={restartSurvey}>
                 Restart survey
