@@ -17,7 +17,7 @@ function Survey() {
       id: 2,
       text: "What distance are you willing to travel for food?",
       type: "multiple",
-      options: [">1 Mile", "2–3 Miles", "More than 3 Miles"],
+      options: ["<1 Mile", "2–3 Miles", "More than 3 Miles"],
     },
     {
       id: 3,
@@ -111,143 +111,125 @@ function Survey() {
 
   return (
     <div className="survey-container">
-      <h1>Survey</h1>
+      <div className="survey-card">
+        <h1 className="survey-title">Travel Survey</h1>
 
-      {step === 0 ? (
-        <>
-          <h2>Instructions</h2>
-          <p>
-            Please answer the following questions about your travel habits and
-            experiences. Click “Next” to begin.
-          </p>
-          <button className="next-button" onClick={handleNext}>
-            Start
-          </button>
-        </>
-      ) : step <= questions.length ? (
-        <>
-          <h2>
-            Question {step} of {questions.length}
-          </h2>
-          <p>{questions[step - 1].text}</p>
-
-          {/* Render based on question type */}
-          <div className="options">
-            {questions[step - 1].type === "single" &&
-              questions[step - 1].options.map((option, index) => (
-                <label key={index} className="option-item">
-                  <input
-                    type="radio"
-                    name={`q${questions[step - 1].id}`}
-                    value={option}
-                    checked={
-                      answers[questions[step - 1].id]?.includes(option) || false
-                    }
-                    onChange={() =>
-                      handleChange(
-                        questions[step - 1].id,
-                        option,
-                        false // not multiple
-                      )
-                    }
-                  />
-                  {option}
-                </label>
-              ))}
-
-            {questions[step - 1].type === "multiple" &&
-              questions[step - 1].options.map((option, index) => (
-                <label key={index} className="option-item">
-                  <input
-                    type="checkbox"
-                    name={`q${questions[step - 1].id}`}
-                    value={option}
-                    checked={
-                      answers[questions[step - 1].id]?.includes(option) || false
-                    }
-                    onChange={() =>
-                      handleChange(
-                        questions[step - 1].id,
-                        option,
-                        true // multiple
-                      )
-                    }
-                  />
-                  {option}
-                </label>
-              ))}
-
-            {questions[step - 1].type === "text" && (
-              <textarea
-                className="survey-textarea"
-                rows="4"
-                placeholder="Type your answer here..."
-                value={answers[questions[step - 1].id]?.[0] || ""}
-                onChange={(e) =>
-                  handleTextChange(questions[step - 1].id, e.target.value)
-                }
-              />
-            )}
+        {step === 0 ? (
+          <div className="survey-intro">
+            <h2 style={{ color: "#B41F3A" }}>Welcome!</h2>
+            <p style={{ color: "#B41F3A" }}>
+              Help us personalize your travel experience. This quick survey takes less than a minute.
+            </p>
+            <button className="btn btn-primary" onClick={handleNext}>
+              Start Survey
+            </button>
           </div>
+        ) : step <= questions.length ? (
+          <div className="survey-question">
+            <h2 style={{ color: "#B41F3A" }}>
+              Question {step} of {questions.length}
+            </h2>
+            <p className="question-text">{questions[step - 1].text}</p>
 
-          <div className="button-row">
-            {step > 0 && (
-              <button className="back-button" onClick={handleBack}>
-                Back
+            <div className="options">
+              {questions[step - 1].type === "single" &&
+                questions[step - 1].options.map((option, index) => (
+                  <label key={index} className="option-item">
+                    <input
+                      type="radio"
+                      name={`q${questions[step - 1].id}`}
+                      value={option}
+                      checked={answers[questions[step - 1].id]?.includes(option) || false}
+                      onChange={() => handleChange(questions[step - 1].id, option, false)}
+                    />
+                    {option}
+                  </label>
+                ))}
+
+              {questions[step - 1].type === "multiple" &&
+                questions[step - 1].options.map((option, index) => (
+                  <label key={index} className="option-item">
+                    <input
+                      type="checkbox"
+                      name={`q${questions[step - 1].id}`}
+                      value={option}
+                      checked={answers[questions[step - 1].id]?.includes(option) || false}
+                      onChange={() => handleChange(questions[step - 1].id, option, true)}
+                    />
+                    {option}
+                  </label>
+                ))}
+
+              {questions[step - 1].type === "text" && (
+                <textarea
+                  className="survey-textarea"
+                  rows="4"
+                  placeholder="Type your answer here..."
+                  value={answers[questions[step - 1].id]?.[0] || ""}
+                  onChange={(e) => handleTextChange(questions[step - 1].id, e.target.value)}
+                />
+              )}
+            </div>
+
+            <div className="button-row">
+              {step > 0 && (
+                <button className="btn btn-secondary" onClick={handleBack}>
+                  Back
+                </button>
+              )}
+              <button className="btn btn-primary" onClick={handleNext}>
+                {step === questions.length ? "Finish" : "Next"}
               </button>
-            )}
-            <button className="next-button" onClick={handleNext}>
-              {step === questions.length ? "Finish" : "Next"}
-            </button>
+            </div>
           </div>
-        </>
-      ) : (
-        <>
-          <h2>Thank you!</h2>
-          <p>Your responses:</p>
-          <ul className="answers-list">
-            {questions.map((q) => (
-              <li key={q.id}>
-                <strong>{q.text}</strong>
-                <br />
-                {answers[q.id]?.join(", ") || "No answer"}
-              </li>
-            ))}
-          </ul>
+        ) : (
+          <div className="survey-summary">
+            <h2>🎉 Thank you!</h2>
+            <p>Here’s a summary of your responses:</p>
+            <ul className="answers-list">
+              {questions.map((q) => (
+                <li key={q.id}>
+                  <strong>{q.text}</strong>
+                  <br />
+                  {answers[q.id]?.join(", ") || "No answer"}
+                </li>
+              ))}
+            </ul>
 
-          <div style={{ marginTop: 12 }}>
-            <button onClick={saveCurrentResponse}>Save response</button>
-            <button
-              onClick={async () => {
-                try {
-                  await sendToBackend({ id: Date.now(), timestamp: new Date().toISOString(), answers });
-                } catch (e) {
-                  // handle error
-                }
-              }}
-              style={{ marginLeft: 8 }}
-            >
-              Send response now
-            </button>
-            <button onClick={sendSavedResponses} style={{ marginLeft: 8 }}>
-              Send all saved
-            </button>
-            <button onClick={clearSavedResponses} style={{ marginLeft: 8 }}>
-              Clear saved
-            </button>
+            <div className="button-row">
+              <button className="btn btn-outline" onClick={saveCurrentResponse}>
+                Save response
+              </button>
+              <button
+                className="btn btn-outline"
+                onClick={async () => {
+                  try {
+                    await sendToBackend({ id: Date.now(), timestamp: new Date().toISOString(), answers });
+                  } catch (e) {}
+                }}
+              >
+                Send response now
+              </button>
+              <button className="btn btn-outline" onClick={sendSavedResponses}>
+                Send all saved
+              </button>
+              <button className="btn btn-danger" onClick={clearSavedResponses}>
+                Clear saved
+              </button>
+            </div>
+
+            <h3>📦 Saved responses</h3>
+            <ul className="saved-list">
+              {savedResponses.length === 0 && <li>No saved responses</li>}
+              {savedResponses.map((r) => (
+                <li key={r.id}>
+                  {new Date(r.timestamp).toLocaleString()} — {Object.values(r.answers).flat().join(", ")}
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <h3 style={{ marginTop: 18 }}>Saved responses</h3>
-          <ul>
-            {savedResponses.length === 0 && <li>No saved responses</li>}
-            {savedResponses.map((r) => (
-              <li key={r.id}>
-                {new Date(r.timestamp).toLocaleString()} — {Object.values(r.answers).flat().join(", ")}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }

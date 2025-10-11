@@ -1,4 +1,4 @@
-.survey-container {
+/* .survey-container {
     position: fixed; 
     top: 15%; 
     left: 33%;
@@ -11,4 +11,108 @@
     padding-top: 20px;
     box-sizing: border-box;
     border-radius: 50px;
+} */
+ 
+.survey-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  /* background: #B41F3A; */
+  background: #1C1C1C;
+  min-height: 100vh;
+}
+
+.survey-card {
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+}
+
+.survey-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #B41F3A;
+}
+
+.question-text {
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #000000;
+}
+
+.options {
+  margin-bottom: 1.5rem;
+}
+
+.option-item {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #000000;
+}
+
+.survey-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.button-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #B41F3A;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-outline {
+  background-color: white;
+  border: 1px solid #007bff;
+  color: #007bff;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.answers-list,
+.saved-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 1rem;
+}
+
+.answers-list li,
+.saved-list li {
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
 }
