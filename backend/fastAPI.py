@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Dict
 from fastapi.middleware.cors import CORSMiddleware
+import json
 
 # -------------------
 # Initialize FastAPI
@@ -47,9 +48,9 @@ def submit_response(response: SurveyResponse):
 
 @app.post("/llm/")
 def llm_endpoint(payload: dict):
-    # Process the payload as needed
+    # Process the payload as needed and return it as a string
     return {
         "status": "success",
         "message": "LLM endpoint received",
-        "data": 
+        "data": json.dumps(payload) if not isinstance(payload, str) else str(payload)
     }
