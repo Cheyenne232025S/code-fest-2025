@@ -37,18 +37,9 @@ def root():
 # Submit a single response (process and return summary, no saving)
 @app.post("/submit/")
 def submit_response(response: SurveyResponse):
-    # Example processing: count total answers
-    total_answers = sum(len(ans_list) for ans_list in response.answers.values())
-    
-    summary = {
-        "id": response.id,
-        "timestamp": response.timestamp,
-        "total_answers": total_answers
-    }
-
-    # Send data back to frontend
+    # For now simply echo back the received payload so the frontend gets the same data
     return {
         "status": "success",
-        "message": "Response processed",
-        "summary": summary
+        "message": "Echoing received payload",
+        "data": response.model_dump()
     }

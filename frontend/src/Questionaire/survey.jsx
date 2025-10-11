@@ -127,12 +127,10 @@ function Survey() {
     setSavedResponses([]);
   };
 
-
-  //PSUEDO CODE FOR SENDING TO BACKEND
   const sendToBackend = async (payload) => {
     try {
-      // replace with your real backend endpoint
-      const res = await fetch("http://localhost:4000/api/responses", {
+      // FastAPI endpoint (adjust port if your backend runs elsewhere)
+      const res = await fetch("http://localhost:8000/submit/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -173,12 +171,31 @@ function Survey() {
       alert("Please answer all questions before submitting.");
       return;
     }
+
+    // Normalize answers keys to strings to match backend typing
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([k, v]) => [String(k), v])
+    );
+
+    const payload = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      answers: normalizedAnswers,
+    };
+
     try {
-      await sendToBackend({ id: Date.now(), timestamp: new Date().toISOString(), answers });
+      const backendResponse = await sendToBackend(payload);
+      // store backend response so /map can read it (sessionStorage cleared on tab close)
+      try {
+        sessionStorage.setItem("surveySubmission", JSON.stringify(backendResponse));
+      } catch (err) {
+        // ignore storage errors
+      }
     } catch (e) {
-      // ignore send errors for now
+      // optionally show an error to the user; proceed to map regardless
+      console.error("Submit failed", e);
     } finally {
-      // navigate to /map (works without depending on react-router version)
+      // navigate to /map where the page can read sessionStorage['surveySubmission']
       window.location.href = "/map";
     }
   };
