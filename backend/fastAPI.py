@@ -7,7 +7,16 @@ from LLM_test import get_family_friendly_hotels
 import json
 from fastapi import FastAPI, Request
 from LLM_test import get_family_friendly_hotels  # make sure this function exists
+
+import sys
+import os
+
+# Add parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# import notes.score_model  # Now you can use score_model.main()
 from notes.score_model import main
+
 
 # -------------------
 # Initialize FastAPI
