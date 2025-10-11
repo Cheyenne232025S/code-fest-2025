@@ -8,10 +8,11 @@ model = genai.GenerativeModel(
     system_instruction="You are a travel concierge specializing in family-friendly hotel recommendations in NYC."
 )
 
-prompt = "List 3 family-friendly Marriott hotels in NYC with gluten-free menu options. Keep response brief."
 
-def get_family_friendly_hotels(prompt: str) -> str:
+
+def get_family_friendly_hotels() -> str:
     try:
+        prompt = "List 3 family-friendly Marriott hotels in NYC with gluten-free menu options. Keep response brief."
         response = model.generate_content(
             prompt,
             generation_config={
