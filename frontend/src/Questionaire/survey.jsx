@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./survey.css";
 
 function Survey() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [savedResponses, setSavedResponses] = useState([]);
+
+  // add submission state
+  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error'
+
+  // per-question submit state
+  const [questionSubmitting, setQuestionSubmitting] = useState(false);
+  const [questionSubmitStatus, setQuestionSubmitStatus] = useState(null); // null | 'success' | 'error'
 
   // Define questions — supports "single", "multiple", and "text"
   const questions = [
@@ -80,11 +90,16 @@ function Survey() {
   };
 
 
-  //PSUEDO CODE FOR SENDING TO BACKEND
+
+
+
+
+  //PSUEUDO BACKEND PUT IN LATER
+  const BACKEND_ENDPOINT = "http://localhost:4000/api/responses";
+
   const sendToBackend = async (payload) => {
     try {
-      // replace with your real backend endpoint
-      const res = await fetch("http://localhost:4000/api/responses", {
+      const res = await fetch(BACKEND_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -92,16 +107,137 @@ function Survey() {
       if (!res.ok) throw new Error("Network response was not ok");
       return await res.json();
     } catch (err) {
-      console.error("Send failed", err);
-      throw err;
+      // offline/no backend: persist to outbox and resolve with offlineSaved
+      console.warn("Backend unavailable — saving to outbox", err);
+      const outbox = JSON.parse(localStorage.getItem("outbox") || "[]");
+      const item = { id: Date.now(), timestamp: new Date().toISOString(), payload };
+      outbox.push(item);
+      localStorage.setItem("outbox", JSON.stringify(outbox));
+      // schedule a flush attempt (flush runs periodically via effect below)
+      return { offlineSaved: true, savedId: item.id };
     }
   };
 
+  // try to send queued outbox items when online / periodically
+  const flushOutbox = async () => {
+    const outbox = JSON.parse(localStorage.getItem("outbox") || "[]");
+    if (!outbox.length) return;
+    if (!navigator.onLine) return;
+    const remaining = [];
+    for (const item of outbox) {
+      try {
+        const res = await fetch(BACKEND_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(item.payload),
+        });
+        if (!res.ok) throw new Error("Network response was not ok");
+        // success: drop item
+      } catch (e) {
+        // keep item for retry
+        remaining.push(item);
+      }
+    }
+    localStorage.setItem("outbox", JSON.stringify(remaining));
+  };
+
+  // ensure flush runs periodically and when coming online
+  useEffect(() => {
+    const interval = setInterval(() => {
+      flushOutbox();
+    }, 30_000); // try every 30s
+
+    const onOnline = () => flushOutbox();
+    window.addEventListener("online", onOnline);
+
+    // attempt immediate flush on mount (if online)
+    flushOutbox();
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("online", onOnline);
+    };
+  }, []);
+
+  // helper: send payload and navigate to /map on success (or offlineSaved)
+  const sendAndNavigateIfOK = async (payload) => {
+    const res = await sendToBackend(payload);
+    // treat either a real response or an offlineSaved result as successful for navigation
+    if (res && (res.offlineSaved || Object.keys(res).length >= 0)) {
+      // small delay to allow UI update, then navigate
+      navigate("/map");
+    }
+    return res;
+  };
+
+  // submit only the current question's answer immediately
+  const submitCurrentQuestion = async () => {
+    const q = questions[step - 1];
+    if (!q) return;
+    setQuestionSubmitting(true);
+    setQuestionSubmitStatus(null);
+    try {
+      const payload = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        questionId: q.id,
+        questionText: q.text,
+        answer: answers[q.id] || [],
+      };
+      const res = await sendToBackend(payload);
+      setQuestionSubmitStatus("success");
+      // navigate on success / offline save
+      if (res && (res.offlineSaved || Object.keys(res).length >= 0)) {
+        navigate("/map");
+      }
+    } catch (err) {
+      setQuestionSubmitStatus("error");
+    } finally {
+      setQuestionSubmitting(false);
+    }
+  };
+
+  // new handlers for final-screen actions
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setSubmitStatus(null);
+    try {
+      await sendToBackend({
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        answers,
+      });
+      setSubmitStatus("success");
+      // optionally persist locally as well:
+      saveCurrentResponse();
+      // navigate to the map page after successful submit
+      navigate("/map");
+    } catch (err) {
+      setSubmitStatus("error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleBackFromSummary = () => {
+    setStep(questions.length); // go back to last question
+  };
+
+  const handleRestart = () => {
+    setStep(0);
+    setAnswers({});
+    setSubmitStatus(null);
+  };
+
+  // send all saved responses and navigate when sent/saved
   const sendSavedResponses = async () => {
     if (savedResponses.length === 0) return;
     try {
-      // send all saved responses in one request; adjust as needed
-      await sendToBackend({ responses: savedResponses });
+      const res = await sendToBackend({ responses: savedResponses });
+      // navigate on network success or offline save
+      if (res && (res.offlineSaved || Object.keys(res).length >= 0)) {
+        navigate("/map");
+      }
       // optionally clear after successful send:
       // clearSavedResponses();
     } catch (err) {
@@ -109,9 +245,48 @@ function Survey() {
     }
   };
 
+  // send current entire response and navigate
+  const sendNowAndNavigate = async () => {
+    try {
+      const res = await sendToBackend({
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        answers,
+      });
+      if (res && (res.offlineSaved || Object.keys(res).length >= 0)) {
+        navigate("/map");
+      }
+    } catch (e) {
+      // handle error
+    }
+  };
+
+  // skip the survey: send a minimal payload and navigate to /map
+  const handleSkip = async () => {
+    const payload = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      skipped: true,
+      answers, // include whatever has been filled so far (may be empty)
+    };
+    try {
+      // attempt send; sendToBackend will save to outbox if backend missing
+      const res = await sendToBackend(payload);
+      // navigate if send returned (network success or offlineSaved)
+      if (res && (res.offlineSaved || Object.keys(res).length >= 0)) {
+        navigate("/map");
+        return;
+      }
+    } catch (e) {
+      // ignore errors — still navigate
+    }
+    // fallback navigation
+    navigate("/map");
+  };
+
   return (
     <div className="survey-container">
-      <h1>Survey</h1>
+      <h1 className="survey-title">Survey</h1>
 
       {step === 0 ? (
         <>
@@ -120,9 +295,14 @@ function Survey() {
             Please answer the following questions about your travel habits and
             experiences. Click “Next” to begin.
           </p>
-          <button className="next-button" onClick={handleNext}>
-            Start
-          </button>
+          <div className="button-row">
+            <button className="next-button" onClick={handleNext}>
+              Start
+            </button>
+            <button className="skip-button" onClick={handleSkip}>
+              Skip
+            </button>
+          </div>
         </>
       ) : step <= questions.length ? (
         <>
@@ -191,15 +371,36 @@ function Survey() {
           </div>
 
           <div className="button-row">
-            {step > 0 && (
-              <button className="back-button" onClick={handleBack}>
-                Back
-              </button>
-            )}
-            <button className="next-button" onClick={handleNext}>
-              {step === questions.length ? "Finish" : "Next"}
-            </button>
-          </div>
+             {step > 0 && (
+               <button className="back-button" onClick={handleBack}>
+                 Back
+               </button>
+             )}
+             <button className="next-button" onClick={handleNext}>
+               {step === questions.length ? "Finish" : "Next"}
+             </button>
+
+             {/* immediate submit for the current question */}
+             <button
+               className="submit-question-button"
+               onClick={submitCurrentQuestion}
+               disabled={questionSubmitting}
+             >
+               {questionSubmitting ? "Submitting..." : "Submit answer now"}
+             </button>
+           </div>
+
+          {/* per-question submit status */}
+          {questionSubmitStatus === "success" && (
+            <div style={{ color: "green", marginTop: 8 }}>
+              Question submitted successfully.
+            </div>
+          )}
+          {questionSubmitStatus === "error" && (
+            <div style={{ color: "red", marginTop: 8 }}>
+              Question submission failed.
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -215,27 +416,44 @@ function Survey() {
             ))}
           </ul>
 
-          <div style={{ marginTop: 12 }}>
-            <button onClick={saveCurrentResponse}>Save response</button>
-            <button
-              onClick={async () => {
-                try {
-                  await sendToBackend({ id: Date.now(), timestamp: new Date().toISOString(), answers });
-                } catch (e) {
-                  // handle error
-                }
-              }}
-              style={{ marginLeft: 8 }}
-            >
+          <div className="final-actions">
+            <button onClick={handleSubmit} disabled={submitting}>
+              {submitting ? "Submitting..." : "Submit response"}
+            </button>
+
+            <button onClick={handleBackFromSummary}>
+              Back to last question
+            </button>
+
+            <button onClick={handleRestart}>
+              Restart survey
+            </button>
+
+            {/* keep existing utilities (save/send/clear) */}
+            <button onClick={saveCurrentResponse}>
+              Save response
+            </button>
+            <button onClick={sendNowAndNavigate}>
               Send response now
             </button>
-            <button onClick={sendSavedResponses} style={{ marginLeft: 8 }}>
+            <button onClick={sendSavedResponses}>
               Send all saved
             </button>
-            <button onClick={clearSavedResponses} style={{ marginLeft: 8 }}>
+            <button onClick={clearSavedResponses}>
               Clear saved
             </button>
           </div>
+
+          {submitStatus === "success" && (
+            <div style={{ color: "green", marginTop: 8 }}>
+              Submitted successfully.
+            </div>
+          )}
+          {submitStatus === "error" && (
+            <div style={{ color: "red", marginTop: 8 }}>
+              Submission failed. Try again.
+            </div>
+          )}
 
           <h3 style={{ marginTop: 18 }}>Saved responses</h3>
           <ul>

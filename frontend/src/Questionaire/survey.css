@@ -9,6 +9,57 @@
     text-align: center;
     font-size: 24px;
     padding-top: 20px;
+    padding-bottom: 100px; /* ensure content isn't hidden behind fixed buttons */
     box-sizing: border-box;
     border-radius: 50px;
+}
+
+/* title styling: target the H1 inside the survey container */
+.survey-container .survey-title {
+    margin: 0 0 20px 0;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.final-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* spacing between buttons */
+    flex-wrap: wrap;
+    position: absolute; /* positioned relative to .survey-container */
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+/* optional: smaller buttons on the final row */
+.final-actions button {
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* make the question button-row fixed to bottom and centered too */
+.button-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    position: absolute; /* positioned relative to .survey-container */
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    flex-wrap: wrap;
+}
+
+/* small spacing for instruction/start buttons (same style applies) */
+.button-row button {
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
 }
