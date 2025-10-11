@@ -51,11 +51,9 @@ def submit_response(response: SurveyResponse):
 
 
 
-# @app.post("/llm/")
-# async def llm_endpoint(request: Request):
-#     data = await request.json()
-#     prompt = data.get("prompt", "")
-#     response_text = get_family_friendly_hotels(prompt)
+# @app.get("/llm/")
+# def llm_endpoint():
+#     response_text = get_family_friendly_hotels()
 #     return { "data": response_text }
 
 
