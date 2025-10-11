@@ -1,0 +1,45 @@
+/* Map container sizing is handled in inline style, but you can add styling here */
+.info-window {
+  max-width: 200px;
+  font-family: Arial, sans-serif;
+}
+
+.info-window h4 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+}
+
+.info-window p {
+  margin: 2px 0;
+  font-size: 14px;
+}
+
+/* ensure the map area occupies remaining viewport space (below header, right of sidebar) */
+.map-wrapper {
+  position: fixed;
+  top: 70px;
+  left: 400px;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  z-index: 0;
+}
+
+/* loading UI when geocoding is in progress */
+.loading-message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 12px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 6px;
+  margin: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  z-index: 5;
+}
+
+.loading-message .error {
+  color: #b00020;
+  font-size: 13px;
+}

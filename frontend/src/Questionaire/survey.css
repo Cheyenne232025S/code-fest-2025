@@ -1,4 +1,4 @@
-.survey-container {
+/* .survey-container {
     position: fixed; 
     top: 15%; 
     left: 33%;
@@ -9,57 +9,116 @@
     text-align: center;
     font-size: 24px;
     padding-top: 20px;
-    padding-bottom: 100px; /* ensure content isn't hidden behind fixed buttons */
     box-sizing: border-box;
     border-radius: 50px;
+} */
+ 
+.survey-container { 
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  background: #1C1C1C;
+  min-height: 100vh;
 }
 
-/* title styling: target the H1 inside the survey container */
-.survey-container .survey-title {
-    margin: 0 0 20px 0;
-    font-size: 28px;
-    font-weight: 600;
-    line-height: 1;
+.survey-card {
+  background: white;
+  padding: 2rem 3rem 4rem;
+  border-radius: 12px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
-.final-actions {
-    margin-top: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px; /* spacing between buttons */
-    flex-wrap: wrap;
-    position: absolute; /* positioned relative to .survey-container */
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
+
+
+.survey-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #B41F3A;
 }
 
-/* optional: smaller buttons on the final row */
-.final-actions button {
-    padding: 8px 12px;
-    font-size: 16px;
-    cursor: pointer;
+.question-text {
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #000000;
 }
 
-/* make the question button-row fixed to bottom and centered too */
+.options {
+  margin-bottom: 1.5rem;
+}
+
+.option-item {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #000000;
+}
+
+.survey-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
 .button-row {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    align-items: center;
-    position: absolute; /* positioned relative to .survey-container */
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
-/* small spacing for instruction/start buttons (same style applies) */
-.button-row button {
-    padding: 8px 12px;
-    font-size: 16px;
-    cursor: pointer;
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #B41F3A;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-outline {
+  background-color: white;
+  border: 1px solid #007bff;
+  color: #007bff;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.answers-list,
+.saved-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 1rem;
+  color:#000000;
+}
+
+.answers-list li,
+.saved-list li {
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+h2 {
+  color: #B41F3A; /* Marriott red */
 }
