@@ -21,12 +21,12 @@ function Survey() {
       type: "multiple",
       options: ["<1 Mile", "2–3 Miles", "More than 3 Miles"],
     },
-    {
-      id: 3,
-      text: "What’s your reason for travel?",
-      type: "single",
-      options: ["Business", "Solo", "Family", "Friends"],
-    },
+    // {
+    //   id: 3,
+    //   text: "What’s your reason for travel?",
+    //   type: "single",
+    //   options: ["Business", "Solo", "Family", "Friends"],
+    // },
     {
       id: 4,
       text: "Cuisine Preference?",
@@ -43,7 +43,7 @@ function Survey() {
       id: 6,
       text: "Price Range:",
       type: "single",
-      options: ["$20/person", "$40/person", "$80/person", "Ritzy"],
+      options: ["$", "$$", "$$$", "$$$$"],
     }
   ];
 
