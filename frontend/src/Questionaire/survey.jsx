@@ -183,6 +183,8 @@ function Survey() {
     localStorage.removeItem("surveyDraft");
   };
 
+
+
   const clearSavedResponses = () => {
     localStorage.removeItem("surveyResponses");
     setSavedResponses([]);
