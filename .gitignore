@@ -1,0 +1,35 @@
+# === DATA ===
+data/raw/*
+data/processed/*
+
+# Allow curated/small data and folder keepers
+!data/raw/.gitkeep
+!data/raw/osm_*.json
+!data/raw/yelp_*.json
+!data/raw/tripadvisor_*.json
+!data/raw/yelp/.gitkeep
+!data/processed/.gitkeep
+
+# === SCRIPTS (keep all code)
+!data/scripts/**
+
+# === PYTHON ===
+__pycache__/
+*.pyc
+.venv/
+
+# === FRONTEND ===
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# === MISC ===
+*.tar
+*.zip
+*.parquet
+*.duckdb
+*.csv
+*.gz
+*.log
+.DS_Store

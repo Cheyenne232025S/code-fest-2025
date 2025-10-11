@@ -5,6 +5,8 @@ function Survey() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [savedResponses, setSavedResponses] = useState([]);
+  // track whether the first response was already saved (persisted)
+  const [firstSaved, setFirstSaved] = useState(false);
 
   // Define questions — supports "single", "multiple", and "text"
   const questions = [
@@ -21,18 +23,106 @@ function Survey() {
     },
     {
       id: 3,
-      text: "What’s reason of your travel?",
+      text: "What’s your reason for travel?",
       type: "single",
       options: ["Business", "Solo", "Family", "Friends"],
     },
+    {
+      id: 4,
+      text: "Cuisine Preference?",
+      type: "multiple",
+      options: ["Italian", "Chinese", "Mexican", "Greek", "Halal", "French", "Thai", "Korean"],
+    },
+    {
+      id: 5, 
+      text: "Yelp Rating?",
+      type: "single",
+      options: ["1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars"],
+    }, 
+    {
+      id: 6,
+      text: "Price Range:",
+      type: "single",
+      options: ["$20/person", "$40/person", "$80/person", "Ritzy"],
+    }
   ];
 
   // Load saved responses from localStorage on mount
   useEffect(() => {
-    const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
+    let existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
+    // enforce max 1 saved response (keep most recent if array is present)
+    if (existing.length > 1) {
+      existing = [existing[0]];
+      try {
+        localStorage.setItem("surveyResponses", JSON.stringify(existing));
+      } catch (err) {
+        // ignore storage errors
+      }
+    }
     setSavedResponses(existing);
+    // reflect whether there are saved responses (UI only)
+    setFirstSaved(existing.length > 0);
+
+    // restore draft (per-question autosave) if present
+    try {
+      const draft = JSON.parse(localStorage.getItem("surveyDraft") || "null");
+      if (draft && draft.answers) {
+        setAnswers(draft.answers);
+        // always start at the beginning page on reload
+        setStep(0);
+      }
+    } catch (err) {
+      // ignore parse errors
+    }
   }, []);
 
+  // Auto-save the FIRST completion when the user reaches the summary
+  useEffect(() => {
+    // summary is shown when step is questions.length + 1
+    if (step === questions.length + 1) {
+      // Replace stored responses with a single (most recent) payload
+      const payload = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        answers,
+      };
+      const updated = [payload]; // only keep this one
+      try {
+        localStorage.setItem("surveyResponses", JSON.stringify(updated));
+      } catch (err) {
+        // ignore storage errors
+      }
+      setSavedResponses(updated);
+      setFirstSaved(true);
+      localStorage.removeItem("surveyDraft");
+    }
+  }, [step]); // run when step changes
+
+  // Auto-save draft after each question change (answers or step)
+  useEffect(() => {
+    // only save drafts once the user has started (step > 0)
+    if (step <= 0) return;
+    // don't save an empty answers object
+    if (!answers || Object.keys(answers).length === 0) {
+      localStorage.removeItem("surveyDraft");
+      return;
+    }
+
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([k, v]) => [String(k), v])
+    );
+    const draft = {
+      timestamp: new Date().toISOString(),
+      step,
+      answers: normalizedAnswers,
+    };
+    try {
+      localStorage.setItem("surveyDraft", JSON.stringify(draft));
+    } catch (err) {
+      // ignore quota/storage issues
+    }
+  }, [answers, step, questions.length]);
+ 
   // Handle input changes for different question types
   const handleChange = (questionId, value, isMultiple) => {
     setAnswers((prev) => {
@@ -54,6 +144,7 @@ function Survey() {
     setAnswers((prev) => ({ ...prev, [questionId]: [value] }));
   };
 
+  // Handle navigation
   const handleNext = () => {
     setStep(step + 1);
   };
@@ -62,16 +153,38 @@ function Survey() {
     if (step > 0) setStep(step - 1);
   };
 
+  // go back one step (safe for summary and question views)
+  const goToPrevious = () => {
+    setStep((prev) => Math.max(0, prev - 1));
+  };
+
+  const restartSurvey = () => {
+    setAnswers({});
+    setStep(0);
+    // clear any draft when restarting
+    localStorage.removeItem("surveyDraft");
+  };
+
   const saveCurrentResponse = () => {
+    // Always allow explicit manual save. Replace stored responses with this one (max=1).
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([k, v]) => [String(k), v])
+    );
     const payload = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
-      answers,
+      answers: normalizedAnswers,
     };
-    const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
-    const updated = [payload, ...existing];
-    localStorage.setItem("surveyResponses", JSON.stringify(updated));
+    const updated = [payload]; // enforce single saved response
+    try {
+      localStorage.setItem("surveyResponses", JSON.stringify(updated));
+    } catch (err) {
+      // ignore storage errors
+    }
     setSavedResponses(updated);
+    setFirstSaved(true);
+    // clear draft after manual full save
+    localStorage.removeItem("surveyDraft");
   };
 
   const clearSavedResponses = () => {
@@ -79,12 +192,10 @@ function Survey() {
     setSavedResponses([]);
   };
 
-
-  //PSUEDO CODE FOR SENDING TO BACKEND
   const sendToBackend = async (payload) => {
     try {
-      // replace with your real backend endpoint
-      const res = await fetch("http://localhost:4000/api/responses", {
+      // FastAPI endpoint (adjust port if your backend runs elsewhere)
+      const res = await fetch("http://localhost:8000/submit/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -109,6 +220,68 @@ function Survey() {
     }
   };
 
+
+  // Helper: return true only if every question has an answer (text must be non-empty)
+  const allAnswered = () => {
+    return questions.every((q) => {
+      const ans = answers[q.id];
+      if (!ans || ans.length === 0) return false;
+      if (q.type === "text") return (ans[0] || "").toString().trim().length > 0;
+      return true;
+    });
+  };
+
+  // submit handler: ensure all answered, send, then navigate to /map
+  const handleSubmit = async () => {
+    if (!allAnswered()) {
+      alert("Please answer all questions before submitting.");
+      return;
+    }
+
+    // Normalize answers keys to strings to match backend typing
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([k, v]) => [String(k), v])
+    );
+
+    const payload = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      answers: normalizedAnswers,
+    };
+
+    try {
+      const backendResponse = await sendToBackend(payload);
+      // store backend response so /map can read it (sessionStorage cleared on tab close)
+      try {
+        sessionStorage.setItem("surveySubmission", JSON.stringify(backendResponse));
+      } catch (err) {
+        // ignore storage errors
+      }
+    } catch (e) {
+      // optionally show an error to the user; proceed to map regardless
+      console.error("Submit failed", e);
+    } finally {
+      // navigate to /map where the page can read sessionStorage['surveySubmission']
+      window.location.href = "/map";
+    }
+  };
+
+  // Load the single saved response (if any) and show the summary
+  const handleLoadSaved = () => {
+    // prefer in-memory state, fallback to localStorage
+    const existing = savedResponses.length
+      ? savedResponses
+      : JSON.parse(localStorage.getItem("surveyResponses") || "[]");
+    if (!existing || existing.length === 0) {
+      alert("No saved response found.");
+      return;
+    }
+    const saved = existing[0];
+    // set answers and jump to the summary view
+    setAnswers(saved.answers || {});
+    setStep(questions.length + 1);
+  };
+
   return (
     <div className="survey-container">
       <div className="survey-card">
@@ -120,6 +293,11 @@ function Survey() {
             <p style={{ color: "#B41F3A" }}>
               Help us personalize your travel experience. This quick survey takes less than a minute.
             </p>
+            <div style={{ marginBottom: 12 }}>
+              <button className="btn btn-outline" onClick={handleLoadSaved}>
+                I've already filled this survey
+              </button>
+            </div>
             <button className="btn btn-primary" onClick={handleNext}>
               Start Survey
             </button>
@@ -184,8 +362,8 @@ function Survey() {
           </div>
         ) : (
           <div className="survey-summary">
-            <h2>🎉 Thank you!</h2>
-            <p>Here’s a summary of your responses:</p>
+            <h2>Thank you!</h2>
+            <p style={{ color: "#B41F3A" }}>Here’s a summary of your responses:</p>
             <ul className="answers-list">
               {questions.map((q) => (
                 <li key={q.id}>
@@ -197,24 +375,24 @@ function Survey() {
             </ul>
 
             <div className="button-row">
+              {/* go back to the previous question from the summary */}
+              <button className="btn btn-secondary" onClick={goToPrevious}>
+                Previous question
+              </button>
+              {/* allow explicit saving even if previous saves exist */}
               <button className="btn btn-outline" onClick={saveCurrentResponse}>
                 Save response
               </button>
+              {/* allow restarting from the summary (styled like the old Clear saved button) */}
+              <button className="btn btn-danger" onClick={restartSurvey}>
+                Restart survey
+              </button>
               <button
-                className="btn btn-outline"
-                onClick={async () => {
-                  try {
-                    await sendToBackend({ id: Date.now(), timestamp: new Date().toISOString(), answers });
-                  } catch (e) {}
-                }}
+                className="btn"
+                style={{ backgroundColor: "#28a745", color: "white" }}
+                onClick={handleSubmit}
               >
-                Send response now
-              </button>
-              <button className="btn btn-outline" onClick={sendSavedResponses}>
-                Send all saved
-              </button>
-              <button className="btn btn-danger" onClick={clearSavedResponses}>
-                Clear saved
+                Submit survey
               </button>
             </div>
 
@@ -229,6 +407,7 @@ function Survey() {
             </ul>
           </div>
         )}
+        
       </div>
     </div>
   );

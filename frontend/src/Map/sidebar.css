@@ -1,0 +1,111 @@
+.sidebar-container {
+    position: fixed;
+    top: 70px; /* below the header */
+    left: 0;
+    width: 400px;
+    height: calc(100% - 70px); /* full height minus header */
+    background-color: #ffffff;
+    color: #000000;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto; /* enable vertical scrolling if content overflows */
+    font-family: inherit; /* use app's font for consistency */
+}
+
+/* divider container: line + content */
+.divider {
+    display: flex;
+    flex-direction: column; /* stack line above content */
+    align-items: stretch; /* allow children to use full width */
+    gap: 8px;
+    margin: 12px 0;
+    outline: none; /* when focused we use box-shadow on content */
+}
+
+.divider-line {
+    width: 65px;
+    height: 2px;
+    background-color: rgba(0,0,0,0.12); /* subtle line */
+    border-radius: 1px;
+}
+
+.divider-content {
+    width: 100%; /* use full horizontal space */
+    height: auto;
+    box-sizing: border-box; /* include padding in width */
+    padding: 6px 10px 6px 10px;
+    border-radius: 4px;
+    background: transparent;
+    transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    display: block; /* allow <p> to flow naturally */
+    margin: 0; /* reset default p margin when used */
+    color: inherit;
+}
+
+/* Hover / focus affect only the content inside the divider */
+.divider:hover .divider-content{
+    
+    background-color: rgba(0, 0, 0, 0.06); /* subtle color change */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* soft glow */
+    transform: translateY(-1px);
+}
+
+/* LLM section */
+.llm-section {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Primary-looking outline button used for LLM fetch */
+.llm-btn {
+    align-self: flex-start;
+    padding: 8px 12px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: transparent;
+    color: inherit;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* hover/active styles */
+.llm-btn:hover:not(:disabled) {
+    background-color: rgba(0,0,0,0.06);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+}
+
+/* disabled appearance */
+.llm-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+/* error message styling */
+.llm-error {
+    color: #b41f3a; /* match UI accent */
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+/* preformatted LLM payload styling */
+.llm-data {
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    color: #222;
+    max-height: 240px;
+    overflow: auto;
+    font-size: 13px;
+    line-height: 1.3;
+}
