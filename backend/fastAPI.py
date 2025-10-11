@@ -67,3 +67,12 @@ def llm_endpoint():
         "message": "LLM endpoint received",
         "data": get_family_friendly_hotels()
     }
+
+@app.post("/results/")
+def results_endpoint():
+    # Process the payload as needed and return it as a string
+    return {
+        "status": "success",
+        "message": "Results endpoint received",
+        "data": get_family_friendly_hotels() # test method
+    }
