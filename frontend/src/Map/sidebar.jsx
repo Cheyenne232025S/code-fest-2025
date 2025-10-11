@@ -55,13 +55,15 @@ function Sidebar() {
       <h1>Sidebar</h1>
 
       {/* LLM section: button to fetch and display /llm/ data */}
-      <div className="llm-section">
-        <button className="llm-btn" onClick={fetchLLM} disabled={llmLoading}>
+      <div style={{ marginBottom: 12 }}>
+        <button className="btn btn-outline" onClick={fetchLLM} disabled={llmLoading}>
           {llmLoading ? "Loading…" : "Fetch LLM recommendations"}
         </button>
-        {llmError && <div className="llm-error">Error: {llmError}</div>}
+        {llmError && <div style={{ color: "crimson", marginTop: 8 }}>Error: {llmError}</div>}
         {llmData && (
-          <pre className="llm-data">{typeof llmData === "string" ? llmData : JSON.stringify(llmData, null, 2)}</pre>
+          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", marginTop: 8 }}>
+            {typeof llmData === "string" ? llmData : JSON.stringify(llmData, null, 2)}
+          </pre>
         )}
       </div>
 
