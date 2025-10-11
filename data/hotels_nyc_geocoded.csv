@@ -1,24 +1,3 @@
-city,borough,neighborhood,brand,hotel_name,address,lat,lon,source_url
-New York,Manhattan,Times Square,Marriott Hotels & Resorts,New York Marriott Marquis,"1535 Broadway, New York, NY 10036",40.758617,-73.986221,
-New York,Manhattan,Midtown East,Courtyard by Marriott,Courtyard New York Manhattan/Midtown East,"866 3rd Ave, New York, NY 10022",40.7574548,-73.9699241,
-New York,Manhattan,Financial District,Marriott Hotels & Resorts,New York Marriott Downtown,"85 West St, New York, NY 10006",40.7095189,-74.0146033,
-New York,Manhattan,Times Square,Moxy (Marriott),Moxy NYC Times Square,"485 7th Ave, New York, NY 10018",40.752407,-73.98943,
-New York,Manhattan,Central Park South,Residence Inn by Marriott,Residence Inn New York Manhattan/Central Park,"1717 Broadway, New York, NY 10019",40.76442,-73.98275,
-New York,Manhattan,Garment District,Courtyard by Marriott,Courtyard New York Manhattan/Times Square West,"307 W 37th St, New York, NY 10018",40.7544949,-73.9925695,
-New York,Manhattan,Times Square South,Fairfield Inn & Suites by Marriott,Fairfield Inn & Suites New York Manhattan/Times Square South,"338 W 36th St, New York, NY 10018",40.754011,-73.993972,
-New York,Manhattan,Central Park South,JW Marriott,JW Marriott Essex House New York,"160 Central Park S, New York, NY 10019",40.7661739,-73.9785098,
-New York,Manhattan,Midtown West,Renaissance,Renaissance New York Midtown Hotel,"218 W 35th St, New York, NY 10001",40.7517258,-73.9910703,
-New York,Manhattan,SoHo,Courtyard by Marriott,Courtyard New York Manhattan/SoHo,"181 Varick St, New York, NY 10014",40.7275439,-74.005787,
-New York,Manhattan,East Village,Moxy (Marriott),Moxy NYC East Village,"112 E 11th St, New York, NY 10003",40.731407,-73.9894371,
-New York,Manhattan,Times Square,Residence Inn by Marriott,Residence Inn New York Manhattan/Times Square,"1033 6th Ave, New York, NY 10018",40.7528306,-73.9858447,
-New York,Manhattan,Chelsea/NoMad,Fairfield Inn & Suites by Marriott,Fairfield Inn & Suites New York Midtown Manhattan/Penn Station,"325 W 33rd St, New York, NY 10001",40.7522599,-73.9951162,
-New York,Manhattan,Midtown West,SpringHill Suites by Marriott,SpringHill Suites New York Midtown Manhattan/Fifth Avenue,"25 W 37th St, New York, NY 10018",40.7512066,-73.9846704,
-New York,Manhattan,Times Square,AC Hotels by Marriott,AC Hotel New York Times Square,"260 W 40th St, New York, NY 10018",40.7556434,-73.9903003,
-New York,Manhattan,Chelsea/NoMad,Ritz-Carlton,"The Ritz-Carlton New York, NoMad","25 W 28th St, New York, NY 10001",40.7456871,-73.9889627,
-New York,Manhattan,Flatiron,EDITION,The New York EDITION,"5 Madison Ave, New York, NY 10010",40.7413262,-73.9874695,
-New York,Manhattan,Upper East Side,Courtyard by Marriott,Courtyard New York Manhattan/Upper East Side,"410 E 92nd St, New York, NY 10128",40.7802422,-73.946123,
-New York,Manhattan,Chelsea/NoMad,Moxy (Marriott),Moxy NYC Chelsea,"105 W 28th St, New York, NY 10001",40.7464744,-73.9909462,
-New York,Manhattan,Financial District,Aloft (Marriott),Aloft Manhattan Downtown - Financial District,"49-53 Ann St, New York, NY 10038",40.7096658,-74.0056051,
-New York,Manhattan,Tribeca,Sheraton,Sheraton Tribeca New York Hotel,"370 Canal St, New York, NY 10013",40.7207008,-74.0038721,
-New York,Manhattan,Times Square,Four Points by Sheraton,Four Points by Sheraton Midtown - Times Square,"326 W 40th St, New York, NY 10018",40.7564066,-73.9923532,
-New York,Manhattan,Union Square,W Hotels,W New York - Union Square,"201 Park Ave S, New York, NY 10003",40.7365762,-73.9885429,
+version https://git-lfs.github.com/spec/v1
+oid sha256:b43da48d8dc3cc73380b229fcabf6e76420524fd7c436920b03d17077ac002d0
+size 3517
