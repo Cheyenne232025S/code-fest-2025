@@ -1,35 +1,35 @@
-
-# Ignore all raw and heavy datasets
+# === DATA ===
 data/raw/*
 data/processed/*
 
-# Keep curated small JSONs (like osm_ and yelp_ exports)
+# Allow curated/small data and folder keepers
+!data/raw/.gitkeep
 !data/raw/osm_*.json
 !data/raw/yelp_*.json
+!data/raw/tripadvisor_*.json
+!data/raw/yelp/.gitkeep
+!data/processed/.gitkeep
 
-# Keep all scripts
+# === SCRIPTS (keep all code)
 !data/scripts/**
 
-# Ignore intermediate / heavy formats
-*.tar
-*.zip
-*.csv
-*.parquet
-*.duckdb
-*.gz
-
 # === PYTHON ===
-.venv/
 __pycache__/
 *.pyc
+.venv/
 
-# === NODE / FRONTEND ===
+# === FRONTEND ===
 node_modules/
-dist/
 frontend/node_modules/
+dist/
 frontend/dist/
 
 # === MISC ===
+*.tar
+*.zip
+*.parquet
+*.duckdb
+*.csv
+*.gz
 *.log
 .DS_Store
-
