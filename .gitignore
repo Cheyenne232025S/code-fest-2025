@@ -1,4 +1,4 @@
-# === DATA ===
+
 # Ignore all raw and heavy datasets
 data/raw/*
 data/processed/*
@@ -32,3 +32,4 @@ frontend/dist/
 # === MISC ===
 *.log
 .DS_Store
+
