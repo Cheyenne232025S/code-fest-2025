@@ -187,8 +187,6 @@ function Survey() {
     localStorage.removeItem("surveyDraft");
   };
 
-
-
   const clearSavedResponses = () => {
     localStorage.removeItem("surveyResponses");
     setSavedResponses([]);
@@ -221,6 +219,7 @@ function Survey() {
       // handle/send error to user
     }
   };
+
 
   // Helper: return true only if every question has an answer (text must be non-empty)
   const allAnswered = () => {
