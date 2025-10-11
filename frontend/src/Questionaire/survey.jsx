@@ -51,11 +51,20 @@ function Survey() {
   useEffect(() => {
     const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
     setSavedResponses(existing);
-    // If there is any saved response, consider the "first" already saved.
-    const persistedFlag = localStorage.getItem("surveyFirstSaved");
-    if (persistedFlag === "true" || existing.length > 0) {
-      setFirstSaved(true);
-      localStorage.setItem("surveyFirstSaved", "true");
+    // reflect whether there are saved responses (UI only)
+    setFirstSaved(existing.length > 0);
+
+    // restore draft (per-question autosave) if present
+    try {
+      const draft = JSON.parse(localStorage.getItem("surveyDraft") || "null");
+      if (draft && draft.answers) {
+        setAnswers(draft.answers);
+        // restore step but keep it within valid bounds
+        const restoredStep = typeof draft.step === "number" ? Math.max(0, Math.min(draft.step, questions.length + 1)) : 0;
+        setStep(restoredStep);
+      }
+    } catch (err) {
+      // ignore parse errors
     }
   }, []);
 
@@ -63,9 +72,8 @@ function Survey() {
   useEffect(() => {
     // summary is shown when step is questions.length + 1
     if (step === questions.length + 1) {
-      // if first already saved, do nothing
-      if (localStorage.getItem("surveyFirstSaved") === "true") return;
-
+      // Always append a completed response when the user reaches the summary.
+      // This keeps localStorage and the UI list in sync.
       const payload = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
@@ -73,13 +81,43 @@ function Survey() {
       };
       const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
       const updated = [payload, ...existing];
-      localStorage.setItem("surveyResponses", JSON.stringify(updated));
-      localStorage.setItem("surveyFirstSaved", "true");
+      try {
+        localStorage.setItem("surveyResponses", JSON.stringify(updated));
+      } catch (err) {
+        // ignore storage errors
+      }
       setSavedResponses(updated);
       setFirstSaved(true);
+      // final save completed — remove draft
+      localStorage.removeItem("surveyDraft");
     }
   }, [step]); // run when step changes
 
+  // Auto-save draft after each question change (answers or step)
+  useEffect(() => {
+    // only save drafts once the user has started (step > 0)
+    if (step <= 0) return;
+    // don't save an empty answers object
+    if (!answers || Object.keys(answers).length === 0) {
+      localStorage.removeItem("surveyDraft");
+      return;
+    }
+
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([k, v]) => [String(k), v])
+    );
+    const draft = {
+      timestamp: new Date().toISOString(),
+      step,
+      answers: normalizedAnswers,
+    };
+    try {
+      localStorage.setItem("surveyDraft", JSON.stringify(draft));
+    } catch (err) {
+      // ignore quota/storage issues
+    }
+  }, [answers, step, questions.length]);
+ 
   // Handle input changes for different question types
   const handleChange = (questionId, value, isMultiple) => {
     setAnswers((prev) => {
@@ -115,29 +153,34 @@ function Survey() {
     setStep((prev) => Math.max(0, prev - 1));
   };
 
-  // restart survey: clear answers and return to intro
   const restartSurvey = () => {
     setAnswers({});
     setStep(0);
+    // clear any draft when restarting
+    localStorage.removeItem("surveyDraft");
   };
 
   const saveCurrentResponse = () => {
-    // only allow saving if first hasn't been saved yet
-    if (localStorage.getItem("surveyFirstSaved") === "true") {
-      // already saved the first response — do not save additional ones
-      return;
-    }
+    // Always allow explicit manual save. Append to stored responses.
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([k, v]) => [String(k), v])
+    );
     const payload = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
-      answers,
+      answers: normalizedAnswers,
     };
     const existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
     const updated = [payload, ...existing];
-    localStorage.setItem("surveyResponses", JSON.stringify(updated));
-    localStorage.setItem("surveyFirstSaved", "true");
+    try {
+      localStorage.setItem("surveyResponses", JSON.stringify(updated));
+    } catch (err) {
+      // ignore storage errors
+    }
     setSavedResponses(updated);
     setFirstSaved(true);
+    // clear draft after manual full save
+    localStorage.removeItem("surveyDraft");
   };
 
   const clearSavedResponses = () => {
@@ -310,11 +353,10 @@ function Survey() {
               <button className="btn btn-secondary" onClick={goToPrevious}>
                 Previous question
               </button>
-              {!firstSaved && (
-                <button className="btn btn-outline" onClick={saveCurrentResponse}>
-                  Save response
-                </button>
-              )}
+              {/* allow explicit saving even if previous saves exist */}
+              <button className="btn btn-outline" onClick={saveCurrentResponse}>
+                Save response
+              </button>
               {/* allow restarting from the summary (styled like the old Clear saved button) */}
               <button className="btn btn-danger" onClick={restartSurvey}>
                 Restart survey
