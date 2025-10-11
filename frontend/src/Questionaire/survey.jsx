@@ -282,135 +282,131 @@ function Survey() {
     setStep(questions.length + 1);
   };
 
+  const [weights, setWeights] = useState({
+    distance: 0.35,
+    rating: 0.35,
+    price: 0.15,
+    cuisine: 0.15,
+  });
+
+const handleWeightChange = (key, value) => {
+  const floatVal = parseFloat(value);
+  if (isNaN(floatVal)) return;
+
+  const updated = { ...weights, [key]: floatVal };
+  const total = Object.values(updated).reduce((sum, val) => sum + val, 0);
+
+  if (total <= 1.0) {
+    setWeights(updated);
+  } else {
+    alert("Total weight cannot exceed 1.0");
+  }
+};
+
   return (
     <div className="survey-container">
       <div className="survey-card">
         <h1 className="survey-title">Travel Survey</h1>
-
-        {step === 0 ? (
           <div className="survey-intro">
-            <h2 style={{ color: "#B41F3A" }}>Welcome!</h2>
-            <p style={{ color: "#B41F3A" }}>
-              Help us personalize your travel experience. This quick survey takes less than a minute.
-            </p>
-            <div style={{ marginBottom: 12 }}>
-              <button className="btn btn-outline" onClick={handleLoadSaved}>
-                I've already filled this survey
-              </button>
-            </div>
-            <button className="btn btn-primary" onClick={handleNext}>
-              Start Survey
-            </button>
-          </div>
-        ) : step <= questions.length ? (
-          <div className="survey-question">
-            <h2 style={{ color: "#B41F3A" }}>
-              Question {step} of {questions.length}
-            </h2>
-            <p className="question-text">{questions[step - 1].text}</p>
+                <h2 style={{ color: "#B41F3A" }}>Welcome!</h2>
+                <p style={{ color: "#B41F3A" }}>
+                  Help us personalize your travel experience. This quick survey takes less than a minute.
+                </p>
+              </div>
 
-            <div className="options">
-              {questions[step - 1].type === "single" &&
-                questions[step - 1].options.map((option, index) => (
-                  <label key={index} className="option-item">
-                    <input
-                      type="radio"
-                      name={`q${questions[step - 1].id}`}
-                      value={option}
-                      checked={answers[questions[step - 1].id]?.includes(option) || false}
-                      onChange={() => handleChange(questions[step - 1].id, option, false)}
-                    />
-                    {option}
-                  </label>
+              <div className="survey-question">
+                <h2 style={{ color: "#B41F3A" }}>Answer the questions below:</h2>
+                {questions.map((q) => (
+                  <div key={q.id} className="question-block">
+                    <p className="question-text">{q.text}</p>
+                    <div className="options">
+                      {q.type === "single" &&
+                        q.options.map((option, index) => (
+                          <label key={index} className="option-item">
+                            <input
+                              type="radio"
+                              name={`q${q.id}`}
+                              value={option}
+                              checked={answers[q.id]?.includes(option) || false}
+                              onChange={() => handleChange(q.id, option, false)}
+                            />
+                            {option}
+                          </label>
+                        ))}
+
+                      {q.type === "multiple" &&
+                        q.options.map((option, index) => (
+                          <label key={index} className="option-item">
+                            <input
+                              type="checkbox"
+                              name={`q${q.id}`}
+                              value={option}
+                              checked={answers[q.id]?.includes(option) || false}
+                              onChange={() => handleChange(q.id, option, true)}
+                            />
+                            {option}
+                          </label>
+                        ))}
+
+                      {q.type === "text" && (
+                        <textarea
+                          className="survey-textarea"
+                          rows="4"
+                          placeholder="Type your answer here..."
+                          value={answers[q.id]?.[0] || ""}
+                          onChange={(e) => handleTextChange(q.id, e.target.value)}
+                        />
+                      )}
+                    </div>
+                  </div>
                 ))}
+              </div>
 
-              {questions[step - 1].type === "multiple" &&
-                questions[step - 1].options.map((option, index) => (
-                  <label key={index} className="option-item">
-                    <input
-                      type="checkbox"
-                      name={`q${questions[step - 1].id}`}
-                      value={option}
-                      checked={answers[questions[step - 1].id]?.includes(option) || false}
-                      onChange={() => handleChange(questions[step - 1].id, option, true)}
-                    />
-                    {option}
-                  </label>
-                ))}
+              <div className="survey-weights">
+                <h3>⚖️ Customize your preferences</h3>
+                <p style={{ color: "#B41F3A" }}>
+                  Adjust how much each factor matters. Total must not exceed 1.0.
+                </p>
+                <div className="weights-grid">
+                  {Object.entries(weights).map(([key, val]) => (
+                    <div key={key} className="weight-item">
+                      <label>
+                        {key.charAt(0).toUpperCase() + key.slice(1)}: {val.toFixed(2)}
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={val}
+                        onChange={(e) => handleWeightChange(key, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p>
+                  Total:{" "}
+                  {Object.values(weights)
+                    .reduce((sum, v) => sum + v, 0)
+                    .toFixed(2)}
+                </p>
+              </div>
 
-              {questions[step - 1].type === "text" && (
-                <textarea
-                  className="survey-textarea"
-                  rows="4"
-                  placeholder="Type your answer here..."
-                  value={answers[questions[step - 1].id]?.[0] || ""}
-                  onChange={(e) => handleTextChange(questions[step - 1].id, e.target.value)}
-                />
-              )}
-            </div>
-
-            <div className="button-row">
-              {step > 0 && (
-                <button className="btn btn-secondary" onClick={handleBack}>
-                  Back
+              <div className="button-row">
+                <button
+                  className="btn"
+                  style={{ backgroundColor: "#28a745", color: "white" }}
+                  onClick={handleSubmit}
+                >
+                  Submit Survey
                 </button>
-              )}
-              <button className="btn btn-primary" onClick={handleNext}>
-                {step === questions.length ? "Finish" : "Next"}
-              </button>
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="survey-summary">
-            <h2>Thank you!</h2>
-            <p style={{ color: "#B41F3A" }}>Here’s a summary of your responses:</p>
-            <ul className="answers-list">
-              {questions.map((q) => (
-                <li key={q.id}>
-                  <strong>{q.text}</strong>
-                  <br />
-                  {answers[q.id]?.join(", ") || "No answer"}
-                </li>
-              ))}
-            </ul>
 
-            <div className="button-row">
-              {/* go back to the previous question from the summary */}
-              <button className="btn btn-secondary" onClick={goToPrevious}>
-                Previous question
-              </button>
-              {/* allow explicit saving even if previous saves exist */}
-              <button className="btn btn-outline" onClick={saveCurrentResponse}>
-                Save response
-              </button>
-              {/* allow restarting from the summary (styled like the old Clear saved button) */}
-              <button className="btn btn-danger" onClick={restartSurvey}>
-                Restart survey
-              </button>
-              <button
-                className="btn"
-                style={{ backgroundColor: "#28a745", color: "white" }}
-                onClick={handleSubmit}
-              >
-                Submit survey
-              </button>
-            </div>
-
-            <h3>📦 Saved responses</h3>
-            <ul className="saved-list">
-              {savedResponses.length === 0 && <li>No saved responses</li>}
-              {savedResponses.map((r) => (
-                <li key={r.id}>
-                  {new Date(r.timestamp).toLocaleString()} — {Object.values(r.answers).flat().join(", ")}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        
-      </div>
-    </div>
   );
 }
+
+
 
 export default Survey;
