@@ -134,7 +134,7 @@ export default function MapImage() {
           <Circle
             center={hotelLocation}
             radius={radius}
-            options={{ fillColor: "blue", fillOpacity: 0.1, strokeColor: "blue" }}
+            options={{ fillColor: "blue", fillOpacity: 0.001, strokeColor: "blue" }}
           />
 
           {/* Restaurant markers */}
