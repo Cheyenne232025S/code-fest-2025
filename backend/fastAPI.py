@@ -5,6 +5,8 @@ from typing import List, Dict
 from fastapi.middleware.cors import CORSMiddleware
 from LLM_test import get_family_friendly_hotels
 import json
+from fastapi import FastAPI, Request
+from LLM_test import get_family_friendly_hotels  # make sure this function exists
 
 # -------------------
 # Initialize FastAPI
@@ -46,6 +48,16 @@ def submit_response(response: SurveyResponse):
         "message": "Echoing received payload",
         "data": response.model_dump()
     }
+
+
+
+# @app.post("/llm/")
+# async def llm_endpoint(request: Request):
+#     data = await request.json()
+#     prompt = data.get("prompt", "")
+#     response_text = get_family_friendly_hotels(prompt)
+#     return { "data": response_text }
+
 
 @app.post("/llm/")
 def llm_endpoint():
