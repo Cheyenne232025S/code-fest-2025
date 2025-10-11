@@ -1,0 +1,52 @@
+.sidebar-container {
+    position: fixed;
+    top: 70px; /* below the header */
+    left: 0;
+    width: 400px;
+    height: calc(100% - 70px); /* full height minus header */
+    background-color: #ffffff;
+    color: #000000;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto; /* enable vertical scrolling if content overflows */
+    font-family: inherit; /* use app's font for consistency */
+}
+
+/* divider container: line + content */
+.divider {
+    display: flex;
+    flex-direction: column; /* stack line above content */
+    align-items: stretch; /* allow children to use full width */
+    gap: 8px;
+    margin: 12px 0;
+    outline: none; /* when focused we use box-shadow on content */
+}
+
+.divider-line {
+    width: 65px;
+    height: 2px;
+    background-color: rgba(0,0,0,0.12); /* subtle line */
+    border-radius: 1px;
+}
+
+.divider-content {
+    width: 100%; /* use full horizontal space */
+    height: auto;
+    box-sizing: border-box; /* include padding in width */
+    padding: 6px 10px 6px 10px;
+    border-radius: 4px;
+    background: transparent;
+    transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    display: block; /* allow <p> to flow naturally */
+    margin: 0; /* reset default p margin when used */
+    color: inherit;
+}
+
+/* Hover / focus affect only the content inside the divider */
+.divider:hover .divider-content{
+    
+    background-color: rgba(0, 0, 0, 0.06); /* subtle color change */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* soft glow */
+    transform: translateY(-1px);
+}
