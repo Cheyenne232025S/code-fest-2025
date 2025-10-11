@@ -377,14 +377,14 @@ const handleWeightChange = (key, value) => {
                         type="range"
                         min="0"
                         max="1"
-                        step="0.01"
+                        step="0.05"
                         value={val}
                         onChange={(e) => handleWeightChange(key, e.target.value)}
                       />
                     </div>
                   ))}
                 </div>
-                <p>
+                <p style={{ color: "#B41F3A" }}>
                   Total:{" "}
                   {Object.values(weights)
                     .reduce((sum, v) => sum + v, 0)
