@@ -29,10 +29,25 @@ function Sidebar() {
   };
 
   useEffect(() => {
-    // No local/session storage usage here.
-    // If you want to populate `submission` from the backend, perform a fetch call
-    // to an API endpoint (e.g. GET /results) and call setSubmission(response).
-    setSubmission(null);
+    // Fetch latest submission from backend (no local/session storage)
+    let cancelled = false;
+    const fetchResults = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/results/");
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const json = await res.json();
+        if (!cancelled) {
+          setSubmission(json.status === "no_data" ? null : json);
+        }
+      } catch (err) {
+        console.error("Failed to fetch survey data in Sidebar:", err);
+        if (!cancelled) setSubmission(null);
+      }
+    };
+    fetchResults();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

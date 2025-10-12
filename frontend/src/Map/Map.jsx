@@ -8,10 +8,26 @@ export default function Map() {
   const [submission, setSubmission] = useState(null);
 
   useEffect(() => {
-    // No local/session storage usage — do not read persisted client data here.
-    // If you want to retrieve results from the backend, implement a fetch call here
-    // to an API endpoint (e.g. GET /results) and setSubmission with the response.
-    setSubmission(null);
+    // Fetch latest submission from backend (no local/session storage)
+    let cancelled = false;
+    const fetchResults = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/results/");
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const json = await res.json();
+        if (!cancelled) {
+          // backend returns either {status: "no_data", ...} or the saved payload
+          setSubmission(json.status === "no_data" ? null : json);
+        }
+      } catch (err) {
+        console.error("Failed to fetch results:", err);
+        if (!cancelled) setSubmission(null);
+      }
+    };
+    fetchResults();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

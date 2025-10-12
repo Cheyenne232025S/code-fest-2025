@@ -42,6 +42,11 @@ class SurveyResponse(BaseModel):
     
 
 # -------------------
+# module-level storage for last submission (in-memory)
+# -------------------
+LAST_SUBMISSION = None
+
+# -------------------
 # API Endpoints
 # -------------------
 
@@ -68,28 +73,33 @@ def llm_endpoint():
 
 @app.post("/submit/")
 def submit_response(response: SurveyResponse):
+    global LAST_SUBMISSION
     answers = response.answers
+    print(response.answers)
 
     # Defensive checks: ensure expected questions exist
     required_qs = ["1", "2", "4", "5", "6"]
     missing = [q for q in required_qs if q not in answers or not answers[q]]
     if missing:
-        return {
+        payload = {
             "status": "error",
             "message": f"Missing answers for questions: {', '.join(missing)}"
         }
+        LAST_SUBMISSION = payload
+        return payload
 
     # --- 1️⃣ Extract survey answers ---
     city = str(answers.get("1")[0])
-    # answers may contain numbers (slider) or strings; coerce to float safely
     try:
         distance_pref_miles = float(answers.get("2")[0])
     except Exception:
-        return {
+        payload = {
             "status": "error",
             "message": "Invalid distance value; expected a number."
         }
-    # travel_reason = answers.get("3")[0]  # optional
+        LAST_SUBMISSION = payload
+        return payload
+
     cuisines = answers.get("4")
     rating_pref = str(answers.get("5")[0])
     price_pref = str(answers.get("6")[0])
@@ -120,17 +130,29 @@ def submit_response(response: SurveyResponse):
     }
     try:
         recommendations = main(user_prefs)  # make sure main() accepts user_prefs as arg
-        print(recommendations)
     except Exception as e:
-        return {
+        payload = {
             "status": "error",
             "message": f"Scoring model failed: {str(e)}",
             "prefs": user_prefs
         }
-    return {
+        LAST_SUBMISSION = payload
+        return payload
+
+    payload = {
         "status": "success",
         "city": city,
-        # "reason": travel_reason,
         "prefs": user_prefs,
         "recommendations": recommendations
     }
+
+    # persist latest submission in memory so frontend Map/Sidebar can fetch it
+    LAST_SUBMISSION = payload
+    return payload
+
+# New endpoint: return the last submission (if any)
+@app.get("/results/")
+def get_results():
+    if LAST_SUBMISSION is None:
+        return {"status": "no_data", "message": "No submission available"}
+    return LAST_SUBMISSION
