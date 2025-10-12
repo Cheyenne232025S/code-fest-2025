@@ -119,7 +119,7 @@ def main(user_prefs=None):
             return dict(zip(keys, probs))
 
         # replace the assert with this:
-    user_prefs["weights"] = softmax_weights(user_prefs["weights"], alpha=1.2)
+    user_prefs["weights"] = softmax_weights(user_prefs["weights"], alpha=1.1)
     print("Softmax-normalized weights:", user_prefs["weights"])
 
     # -----------------------------

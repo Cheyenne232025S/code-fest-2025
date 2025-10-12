@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from LLM_test import get_family_friendly_hotels
+from LLM import generate_summary_with_gemini
 import json
 from fastapi import FastAPI, Request
 # from LLM_test import get_family_friendly_hotels 
@@ -61,10 +62,11 @@ def root():
 @app.post("/llm/")
 def llm_endpoint():
     # Process the payload as needed and return it as a string
+    # pass the last submission (or an empty dict) to the helper
     return {
         "status": "success",
         "message": "LLM endpoint received",
-        "data": get_family_friendly_hotels()
+        "data": generate_summary_with_gemini(LAST_SUBMISSION or {})
     }
 
 @app.post("/submit/")
@@ -126,7 +128,17 @@ def submit_response(response: SurveyResponse):
     }
     try:
         recommendations = main(user_prefs)  # make sure main() accepts user_prefs as arg
-        # summary = generate_summary_with_gemini(answers)
+        # generate a short summary for the UI using the raw answers map
+        try:
+            payload = {
+            "status": "success",
+            "city": city,
+            "prefs": user_prefs,
+            "recommendations": recommendations
+        }
+            summary = generate_summary_with_gemini(payload)
+        except Exception:
+            summary = None
     except Exception as e:
         payload = {
             "status": "error",
@@ -141,7 +153,7 @@ def submit_response(response: SurveyResponse):
         "city": city,
         "prefs": user_prefs,
         "recommendations": recommendations,
-        # "summary": summary
+        "summary": summary
     }
 
     # persist latest submission in memory so frontend Map/Sidebar can fetch it

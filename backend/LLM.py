@@ -15,23 +15,61 @@ import json
 
 genai.configure(api_key="AIzaSyAFqz4rBwUP6_L4V2suoeUTY-WOUicMLGI")
 model = genai.GenerativeModel("gemini-2.5-flash")  # or "gemini-2.5-flash" if available
-def generate_summary_with_gemini(answers: list[str]) -> str:
-    city = answers[0] if len(answers) > 0 else ""
-    distance = answers[1] if len(answers) > 1 else ""
-    reason = answers[2] if len(answers) > 2 else ""
-    cuisines = answers[3] if len(answers) > 3 else ""
-    rating = answers[4] if len(answers) > 4 else ""
-    price = answers[5] if len(answers) > 5 else ""
+def generate_summary_with_gemini(payload):
+    print("Payload received for LLM:", payload)
+    city = payload.get("city", "NYC")
+    user_prefs = payload.get("prefs", {})
+    recs = payload.get("recommendations", {})
+    
+    # Convert top_hotels DataFrame -> list of dicts if needed
+    top_hotels = recs.get("top_hotels", [])
+    if not isinstance(top_hotels, list):
+        try:
+            top_hotels = top_hotels.to_dict(orient="records")
+        except Exception:
+            raise ValueError("top_hotels must be a list or a DataFrame")
+
+    # Get top 3
+    top_3 = top_hotels[:3]
+    if len(top_3) < 3:
+        raise ValueError("Need at least 3 hotels to generate a comparison")
 
     prompt = f"""
-    A traveler is planning a trip to {city} for {reason}.
-    They are willing to travel {distance} miles for food, prefer {cuisines} cuisine,
-    are looking for places rated around {rating}, and have a budget of {price}.
-    Write a warm, enthusiastic 4-sentence recommendation tailored to this traveler.
+    A traveler is choosing between Marriott hotels in {city}.
+    
+    Their preferences:
+    - Cuisines: {', '.join(user_prefs.get('liked_cuisines', []))}
+    - Budget levels: {user_prefs.get('price_levels', [])}
+    - Radius: {user_prefs.get('preferred_radius_m', 0) / 1600:.1f} miles
+    - Purpose: {user_prefs.get('purpose', 'leisure')}
+    
+    Hotel Options:
+    """
+
+    for i, hotel in enumerate(top_3, start=1):
+        name = hotel.get("hotel_name", "Unknown Hotel")
+        score = hotel.get("score", "?")
+        restaurants = json.loads(hotel.get("top_restaurants", "[]")) if isinstance(hotel.get("top_restaurants"), str) else hotel.get("top_restaurants", [])
+        top_matches = [r.get("name") for r in restaurants[:3]] if restaurants else []
+        prompt += f"""
+        {i}. {name} (Score: {score}/100)
+           - {len(restaurants)} matching restaurants nearby
+           - Top matches: {top_matches}
+        """
+
+    prompt += """
+    Write a compelling 4-sentence recommendation explaining:
+    1. Which Marriott is best for THIS traveler
+    2. Why (specific restaurants and experiences)
+    3. What makes it better than the other options
+    4. One unique dining experience they'll love
+
+    Be enthusiastic and specific. Make them excited to book.
     """
 
     response = model.generate_content(prompt)
-    return response.text
+    return response.text.strip()
+
 
 
 
@@ -86,58 +124,53 @@ def generate_summary_with_gemini(answers: list[str]) -> str:
 #     return response.text
 
 
-
+'''
 def generate_hotel_comparison_narrative(ranked_hotels, user_prefs):
-    import google.generativeai as genai
-    genai.configure(api_key="AIzaSyAFqz4rBwUP6_L4V2suoeUTY-WOUicMLGI")
-
-    model = genai.GenerativeModel("gemini-2.5-flash")
-
-    """
-    Use AI to explain why one Marriott is better than another
-    for this specific traveler
-    """
     
-    top_3 = ranked_hotels[:3]
-    
+    if not ranked_hotels or len(ranked_hotels) == 0:
+        raise ValueError("ranked_hotels list is empty or invalid")
+
+    top_5 = ranked_hotels[:5]
+
+    cuisines = user_prefs.get("liked_cuisines", [])
+    price_levels = user_prefs.get("price_levels", [])
+    radius_m = user_prefs.get("preferred_radius_m", 0)
+    radius_miles = round(radius_m / 1600, 2)
+
     prompt = f"""
     A traveler is choosing between Marriott hotels in NYC.
-    
+
     Their preferences:
-    - Cuisines: {user_prefs['cuisines']}
-    - Budget: {user_prefs['price_level']}
-    - Purpose: {user_prefs['purpose']}
-    - Dietary needs: {user_prefs.get('dietary_restrictions', 'None')}
-    
+    - Cuisines: {', '.join(cuisines)}
+    - Price levels (1–4): {price_levels}
+    - Travel radius: {radius_miles} miles
+
     Hotel Options:
-    1. {top_3[0]['hotel']['name']} (Score: {top_3[0]['total_score']}/100)
-       - {top_3[0]['total_matches']} matching restaurants nearby
-       - Top matches: {[r['restaurant']['name'] for r in top_3[0]['matching_restaurants'][:3]]}
-    
-    2. {top_3[1]['hotel']['name']} (Score: {top_3[1]['total_score']}/100)
-       - {top_3[1]['total_matches']} matching restaurants nearby
-       - Top matches: {[r['restaurant']['name'] for r in top_3[1]['matching_restaurants'][:3]]}
-    
-    3. {top_3[2]['hotel']['name']} (Score: {top_3[2]['total_score']}/100)
-       - {top_3[2]['total_matches']} matching restaurants nearby
-       - Top matches: {[r['restaurant']['name'] for r in top_3[2]['matching_restaurants'][:3]]}
-    
+    """
+
+    for i, h in enumerate(top_5[:3], start=1):
+        hotel_name = h.get("hotel", {}).get("name", "Unknown Hotel")
+        total_score = h.get("total_score", "?")
+        total_matches = h.get("total_matches", 0)
+        matching_restaurants = h.get("matching_restaurants", [])
+        top_restos = [r["restaurant"]["name"] for r in matching_restaurants[:3] if "restaurant" in r]
+        
+        prompt += f"""
+        {i}. {hotel_name} (Score: {total_score}/100)
+           - {total_matches} matching restaurants nearby
+           - Top matches: {top_restos}
+        """
+
+    prompt += """
     Write a compelling 4-sentence recommendation explaining:
     1. Which Marriott is best for THIS traveler
     2. Why (specific restaurants and experiences)
     3. What makes it better than the other options
     4. One unique dining experience they'll love
-    
+
     Be enthusiastic and specific. Make them excited to book.
     """
-    
-    
 
     response = model.generate_content(prompt)
-
-    # print(response.text)
-
-    return response.choices[0].message.content # or just response.text?
-
-
-    
+    return response.text.strip()
+    '''
