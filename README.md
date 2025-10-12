@@ -49,14 +49,13 @@ Below are the three key diagrams that describe the system’s design.
 ### ⚙️ Technology Choices
 - **Frontend:** React + Vite (lightweight, modular, responsive)  
 - **Backend:** FastAPI (Python 3, async, type-safe, easy to deploy)  
-- **Database:** Postgres SQL (structured storage for hotels & restaurants)  
 - **External API:** Yelp Fusion API (real restaurant data)  
 - **Environment:** `.env` for secrets and config variables  
 
 ---
 
 ### 🔐 Security
-- API keys stored in `.env` → never exposed to frontend  
+- API key for yelp data stored in `.env` → never exposed to frontend  
 - Input validated with **Pydantic** models in FastAPI  
 - **CORS** limited to approved frontend origin  
 - Database user has restricted privileges (read/write to one schema)  
