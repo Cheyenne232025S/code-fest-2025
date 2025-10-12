@@ -16,14 +16,18 @@
 .survey-container { 
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 2rem;
+  /* center vertically instead of starting at the top */
+  align-items: center;
+  /* removed top margin — parent (.questionaire-container) already sits below the fixed header */
+  margin-top: 0;
+  padding: 1rem 2rem 2rem;
   background: #1C1C1C;
-  min-height: 100vh;
+  /* fill the parent (which is positioned below the header) instead of using viewport height */
+  min-height: 100%;
   box-sizing: border-box; /* ensure padding counts toward size */
 }
 
-/* make the card scroll internally if it grows taller than the viewport */
+/* make the card scroll internally if it grows taller than the parent */
 .survey-card {
   background: white;
   padding: 2rem 3rem 4rem;
@@ -31,9 +35,12 @@
   box-sizing: border-box;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 
-  max-height: calc(100vh - 4rem); /* leave some space for page padding */
+  /* reference the parent height so it doesn't create a visual gap under the header */
+  max-height: calc(100% - 4rem); /* leave some space for card padding */
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+
+  overflow-x: hidden; /* overrides earlier overflow shorthand */
 }
 
 /* prevent any child from forcing horizontal scroll */
@@ -53,6 +60,7 @@
 
   .button-row {
     gap: 0.5rem;
+    flex-wrap: nowrap; /* keep them split on small screens too */
   }
 }
 
@@ -72,11 +80,14 @@
 .options {
   margin-bottom: 1.5rem;
   text-align: left;
+  margin-left: 20%;
 }
 
 .option-item {
-  display: block;
-  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* small space between button and label text */
+  margin-bottom: 0.75rem;
   font-size: 1rem;
   color: #000000;
 }
@@ -94,6 +105,17 @@
   gap: 1rem;
   flex-wrap: wrap;
   margin-top: 1rem;
+  width: 100%;              /* stretch across the card */
+  justify-content: flex-start; /* let auto margins handle spacing */
+  flex-wrap: nowrap;        /* keep on one line */
+}
+
+/* Pin the first and last buttons to opposite sides */
+.button-row .btn:first-child {
+  margin-right: auto;
+}
+.button-row .btn:last-child {
+  margin-left: auto;
 }
 
 .btn {
@@ -152,7 +174,8 @@ h2 {
 html, body {
   height: 100%;
   margin: 0;
-  overflow: auto; /* allow page scrolling */
+  overflow-x: hidden;
+  overflow-y: auto; /* allow page scrolling */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -166,10 +189,22 @@ html, body {
 }
 
 /* Firefox: set thin and colors */
-.survey-card,
-body {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+.survey-card {
+  background: white;
+  padding: 2rem 3rem 4rem;
+  border-radius: 12px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+  /* ✅ Fixed size for all users */
+  width: 600px;          /* adjust as you like */
+  height: 650px;         /* adjust for how tall you want it */
+  max-width: 90vw;       /* still responsive on small screens */
+  max-height: 90vh;
+
+  overflow-y: auto;       /* scroll inside the box if content overflows */
+  -webkit-overflow-scrolling: touch;
+  
 }
 
 /* WebKit-based browsers (Chrome, Edge, Safari) */
@@ -208,4 +243,86 @@ body::-webkit-scrollbar-thumb:active {
   :root {
     --scrollbar-width: 8px;
   }
+}
+
+/* If this step shows a text question, ignore the options indent */
+.survey-card:has(.survey-textarea) .options {
+  margin-left: 0;
+}
+
+h3 {
+  margin-top: 2rem;
+  color: #000000;
+}
+
+.weights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.weight-item {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95rem;
+  color:#B41F3A;
+}
+
+.weight-item input[type="range"] {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Container for the slider question */
+.survey-slider {
+  margin: 1em 0;
+  padding: 0.5em;
+  border-radius: 8px;
+  /* background-color: #f9f9f9; */
+}
+
+/* Label for the question */
+.survey-slider label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5em;
+  color: #333;
+}
+
+/* The slider itself */
+.survey-slider input[type="range"] {
+  width: 100%;
+  height: 6px;
+  background: #ddd;
+  border-radius: 3px;
+  outline: none;
+  transition: background 0.3s;
+}
+
+.survey-slider input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #c8102e; /* Marriott red */
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.survey-slider input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #c8102e;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Value display */
+.slider-value {
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  color: #555;
+  font-style: italic;
 }

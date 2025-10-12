@@ -29,25 +29,25 @@ function Sidebar() {
   };
 
   useEffect(() => {
-    let parsed = null;
-    try {
-      const rawSession = sessionStorage.getItem("surveySubmission");
-      const rawLocal = localStorage.getItem("surveyResponses");
-
-      if (rawSession) {
-        parsed = JSON.parse(rawSession);
-        if (parsed && typeof parsed === "object") {
-          if (parsed.data) parsed = parsed.data;
-          else if (parsed.summary) parsed = parsed.summary;
+    // Fetch latest submission from backend (no local/session storage)
+    let cancelled = false;
+    const fetchResults = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/results/");
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const json = await res.json();
+        if (!cancelled) {
+          setSubmission(json.status === "no_data" ? null : json);
         }
-      } else if (rawLocal) {
-        const arr = JSON.parse(rawLocal);
-        if (Array.isArray(arr) && arr.length > 0) parsed = arr[0];
+      } catch (err) {
+        console.error("Failed to fetch survey data in Sidebar:", err);
+        if (!cancelled) setSubmission(null);
       }
-    } catch (err) {
-      console.error("Failed to parse survey data in Sidebar:", err);
-    }
-    setSubmission(parsed);
+    };
+    fetchResults();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -55,13 +55,15 @@ function Sidebar() {
       <h1>Sidebar</h1>
 
       {/* LLM section: button to fetch and display /llm/ data */}
-      <div className="llm-section">
-        <button className="llm-btn" onClick={fetchLLM} disabled={llmLoading}>
+      <div style={{ marginBottom: 12 }}>
+        <button className="btn btn-outline" onClick={fetchLLM} disabled={llmLoading}>
           {llmLoading ? "Loading…" : "Fetch LLM recommendations"}
         </button>
-        {llmError && <div className="llm-error">Error: {llmError}</div>}
+        {llmError && <div style={{ color: "crimson", marginTop: 8 }}>Error: {llmError}</div>}
         {llmData && (
-          <pre className="llm-data">{typeof llmData === "string" ? llmData : JSON.stringify(llmData, null, 2)}</pre>
+          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", marginTop: 8 }}>
+            {typeof llmData === "string" ? llmData : JSON.stringify(llmData, null, 2)}
+          </pre>
         )}
       </div>
 

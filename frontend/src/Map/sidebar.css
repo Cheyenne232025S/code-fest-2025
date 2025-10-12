@@ -11,6 +11,57 @@
     box-sizing: border-box;
     overflow-y: auto; /* enable vertical scrolling if content overflows */
     font-family: inherit; /* use app's font for consistency */
+    z-index: 1000;
+    transform: translateX(0);
+    transition: transform 200ms ease;
+    overflow-x: visible; /* allow toggle to hang outside */
+}
+
+/* collapsed state: leave small tab visible for toggle */
+.sidebar-container.closed {
+    transform: translateX(calc(-100% + 36px));
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* toggle button that hangs on the right edge */
+.sidebar-toggle {
+    position: absolute;
+    top: 12px;
+    right: -16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #ffffff;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+    z-index: 1001;
+    font-size: 16px;
+    line-height: 1;
+    padding-right: 8px; /* added right padding for extra spacing */
+}
+
+/* chevron icon via pseudo content */
+.sidebar-toggle::before {
+    content: '‹';
+}
+.sidebar-container.closed .sidebar-toggle::before {
+    content: '›';
+}
+
+.sidebar-toggle:hover {
+    background-color: rgba(0,0,0,0.04);
+    transform: translateY(-1px);
+}
+
+.sidebar-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
 }
 
 /* divider container: line + content */

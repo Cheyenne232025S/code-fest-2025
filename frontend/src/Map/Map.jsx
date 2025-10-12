@@ -8,26 +8,26 @@ export default function Map() {
   const [submission, setSubmission] = useState(null);
 
   useEffect(() => {
-    const rawSession = sessionStorage.getItem("surveySubmission");
-    const rawLocal = localStorage.getItem("surveyResponses");
-    let parsed = null;
-
-    try {
-      if (rawSession) {
-        parsed = JSON.parse(rawSession);
-        if (parsed && typeof parsed === "object") {
-          if (parsed.data) parsed = parsed.data;
-          else if (parsed.summary) parsed = parsed.summary;
+    // Fetch latest submission from backend (no local/session storage)
+    let cancelled = false;
+    const fetchResults = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/results/");
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const json = await res.json();
+        if (!cancelled) {
+          // backend returns either {status: "no_data", ...} or the saved payload
+          setSubmission(json.status === "no_data" ? null : json);
         }
-      } else if (rawLocal) {
-        const arr = JSON.parse(rawLocal);
-        if (Array.isArray(arr) && arr.length > 0) parsed = arr[0];
+      } catch (err) {
+        console.error("Failed to fetch results:", err);
+        if (!cancelled) setSubmission(null);
       }
-    } catch (err) {
-      console.error("Failed to parse survey data:", err);
-    }
-
-    setSubmission(parsed);
+    };
+    fetchResults();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
