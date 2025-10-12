@@ -139,25 +139,19 @@ function Survey() {
     }
   };
 
+  // weights are on a 0-10 scale now (no global max enforced)
   const [weights, setWeights] = useState({
-    distance: 0.35,
-    rating: 0.35,
-    price: 0.15,
-    cuisine: 0.15,
+    distance: 3.5,
+    rating: 3.5,
+    price: 1.5,
+    cuisine: 1.5,
   });
 
   const handleWeightChange = (key, value) => {
     const floatVal = parseFloat(value);
     if (isNaN(floatVal)) return;
-
-    const updated = { ...weights, [key]: floatVal };
-    const total = Object.values(updated).reduce((sum, val) => sum + val, 0);
-
-    if (total <= 1.0) {
-      setWeights(updated);
-    } else {
-      alert("Total weight cannot exceed 1.0");
-    }
+    // no total cap — allow arbitrary totals on 0-10 sliders
+    setWeights((prev) => ({ ...prev, [key]: floatVal }));
   };
 
   return (
@@ -239,31 +233,25 @@ function Survey() {
               <div className="survey-weights">
                 <h3>⚖️ Customize your preferences</h3>
                 <p style={{ color: "#B41F3A" }}>
-                  Adjust how much each factor matters. Total must not exceed 1.0.
+                  Adjust how much each factor matters.
                 </p>
                 <div className="weights-grid">
                   {Object.entries(weights).map(([key, val]) => (
                     <div key={key} className="weight-item">
                       <label>
-                        {key.charAt(0).toUpperCase() + key.slice(1)}: {val.toFixed(2)}
+                        {key.charAt(0).toUpperCase() + key.slice(1)}: {Number(val).toFixed(1)}
                       </label>
                       <input
                         type="range"
                         min="0"
-                        max="1"
-                        step="0.05"
+                        max="10"
+                        step="0.5"
                         value={val}
                         onChange={(e) => handleWeightChange(key, e.target.value)}
                       />
                     </div>
                   ))}
                 </div>
-                <p style={{ color: "#B41F3A" }}>
-                  Total:{" "}
-                  {Object.values(weights)
-                    .reduce((sum, v) => sum + v, 0)
-                    .toFixed(2)}
-                </p>
               </div>
 
               <div className="button-row">
