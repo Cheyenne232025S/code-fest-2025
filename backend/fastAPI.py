@@ -8,6 +8,16 @@ import json
 from fastapi import FastAPI, Request
 from LLM_test import get_family_friendly_hotels  # make sure this function exists
 
+import sys
+import os
+
+# Add parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# import notes.score_model  # Now you can use score_model.main()
+from notes.score_model import main
+
+
 # -------------------
 # Initialize FastAPI
 # -------------------
@@ -29,6 +39,7 @@ class SurveyResponse(BaseModel):
     id: int                       # timestamp in milliseconds
     timestamp: str                # ISO datetime string
     answers: Dict[str, List[str]] # question ID -> array of answers
+    
 
 # -------------------
 # API Endpoints
@@ -38,17 +49,6 @@ class SurveyResponse(BaseModel):
 @app.get("/")
 def root():
     return {"message": "Survey API is running"}
-
-# Submit a single response (process and return summary, no saving)
-@app.post("/submit/")
-def submit_response(response: SurveyResponse):
-    # For now simply echo back the received payload so the frontend gets the same data
-    return {
-        "status": "success",
-        "message": "Echoing received payload",
-        "data": response.model_dump()
-    }
-
 
 
 # @app.get("/llm/")
@@ -66,11 +66,55 @@ def llm_endpoint():
         "data": get_family_friendly_hotels()
     }
 
-@app.post("/results/")
-def results_endpoint():
-    # Process the payload as needed and return it as a string
+@app.post("/submit/")
+def submit_response(response: SurveyResponse):
+    answers = response.answers
+    print(response.answers)
+
+    # --- 1️⃣ Extract survey answers ---
+    city = answers.get("1")[0]
+    distance_pref_miles = float(answers.get("2")[0]) #??
+    # travel_reason = answers.get("3")[0]
+    cuisines = answers.get("4")
+    rating_pref = answers.get("5")[0]
+    price_pref = answers.get("6")[0]
+
+    # --- 2️⃣ Convert to numeric / scoring-friendly format ---
+
+    price_map = {
+        "$": [1],
+        "$$": [1, 2],
+        "$$$": [1, 2, 3],
+        "$$$$": [1, 2, 3, 4]
+    }
+    price_levels = price_map.get(price_pref)
+    liked_cuisines = [c.lower() for c in cuisines]
+
+    # --- 3️⃣ Build user_prefs dict for your scoring model ---
+    user_prefs = {
+        "preferred_radius_m": distance_pref_miles * 1600,
+        "liked_cuisines": liked_cuisines,
+        "price_levels": price_levels,
+        "weights": {
+            "distance": 0.35,
+            "rating": 0.35,
+            "price": 0.15,
+            "cuisine": 0.15,
+        },
+        "top_k": 5
+    }
+    try:
+        recommendations = main(user_prefs)  # make sure main() accepts user_prefs as arg
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Scoring model failed: {str(e)}",
+            "prefs": user_prefs
+        }
     return {
         "status": "success",
-        "message": "Results endpoint received",
-        "data": get_family_friendly_hotels() # test method
+        "city": city,
+        # "reason": travel_reason,
+        "prefs": user_prefs,
+        "recommendations": recommendations
     }
