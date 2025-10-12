@@ -207,6 +207,30 @@ export default function MapImage() {
     return () => document.removeEventListener("click", onDocClick);
   }, [selected]);
 
+  // Listen for selections emitted by the sidebar
+  useEffect(() => {
+    const handler = (e) => {
+      const payload = e?.detail;
+      if (!payload) return;
+      // Normalize lat/lng if possible
+      const lat = Number(payload.lat ?? payload.latitude);
+      const lng = Number(payload.lng ?? payload.lon ?? payload.longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        selectEntity({ ...payload, lat, lng });
+        return;
+      }
+      // If lat/lng not provided but hotelId exists, try to find it in current hotels
+      if (payload.hotelId) {
+        const h = hotels.find((x) => x.id === payload.hotelId);
+        if (h) {
+          selectEntity({ ...h, type: payload.type ?? "hotel" });
+        }
+      }
+    };
+    window.addEventListener("selectMapEntity", handler);
+    return () => window.removeEventListener("selectMapEntity", handler);
+  }, [hotels]);
+
   // ✅ Always exactly one circle on the map
   useEffect(() => {
     if (!mapRef.current) return;
@@ -416,21 +440,19 @@ export default function MapImage() {
                       {selected.cuisines && (
                         <div style={{ color: "black" }}>
                           Cuisine:{" "}
-                          {Array.isArray(selected.cuisines)
-                            ? selected.cuisines
-                                .map(
-                                  (c) =>
-                                    c.charAt(0).toUpperCase() + c.slice(1)
-                                )
-                                .join(", ")
-                            : selected.cuisines
-                                .split(",")
-                                .map(
-                                  (c) =>
-                                    c.trim().charAt(0).toUpperCase() +
-                                    c.trim().slice(1)
-                                )
-                                .join(", ")}
+                          {(() => {
+                            const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+                            if (Array.isArray(selected.cuisines)) {
+                              return selected.cuisines
+                                .map((c) => capitalize(String(c).replace(/_/g, "/")))
+                                .join(", ");
+                            }
+                            return String(selected.cuisines)
+                              .split(",")
+                              .map((c) => c.trim().replace(/_/g, "/"))
+                              .map(capitalize)
+                              .join(", ");
+                          })()}
                         </div>
                       )}
                       {selected.url && (
