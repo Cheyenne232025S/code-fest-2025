@@ -35,7 +35,7 @@ Below are the three key diagrams that describe the system’s design.
 ---
 
 ### 🧱 Modularity & Composability
-- **Layers:** UI (React) → API (FastAPI) → Data (File Storage) → Model (`scoring_model.py`)
+ **Layers:** UI (React) → API (FastAPI) → Data (Local CSV Files) → Model (`scoring_model.py`)
 - **Design:** Each layer is isolated — frontend handles presentation, backend handles logic, and the model runs scoring separately.
 - **Reusable components:** CSV outputs and data loaders can be swapped for future APIs or database integrations.
 - **Organization:**  
@@ -50,15 +50,15 @@ Below are the three key diagrams that describe the system’s design.
 - **Frontend:** React + Vite (lightweight, modular, responsive)  
 - **Backend:** FastAPI (Python 3, async, type-safe, easy to deploy)  
 - **External API:** Yelp Fusion API (real restaurant data)  
-- **Environment:** `.env` for secrets and config variables  
+- **Data Storage:** Local CSV files in `/data` (easy to update and version control)  
+- **Environment:** `.env` for secrets and config variables 
 
 ---
 
 ### 🔐 Security
 - API key for yelp data stored in `.env` → never exposed to frontend  
 - Input validated with **Pydantic** models in FastAPI  
-- **CORS** limited to approved frontend origin  
-- Database user has restricted privileges (read/write to one schema)  
+- **CORS** limited to approved frontend origin   
 - **HTTPS** enforced when deployed  
 
 ---
@@ -67,16 +67,19 @@ Below are the three key diagrams that describe the system’s design.
 - **Stateless** FastAPI backend (easy horizontal scaling)  
 - **Batch processing** for scoring model → fast API lookups  
 - **Pagination** & **top-K results** limit payload size  
-- Future option: add **Redis cache** for repeated queries  
+- Can be scaled to handle **larger datasets** (more hotels, more cities)  
+- Future option: connect to a **cloud database** or add **Redis cache** for efficiency  
 - Designed for deployment on **Render / Railway / Docker**
-- With more available data the model can be ran for other cities
 
 ---
 
-### 📡 Data / Content Streaming
-- Current mode: **batch → serve** (pre-computed model outputs)  
-- Can extend to **real-time updates** using SSE or WebSocket  
-- Data pipelines already modular for cloud job scheduling  
+### 📡 Data / Content Flow
+- The system uses **local CSV datasets** stored in the `/data/` folder instead of a live database.  
+- All data is **pre-cleaned and batch processed** by `scoring_model.py`, producing:  
+  - `hotel_scores_with_recos.csv` → aggregated hotel scores  
+  - `hotel_recommendations.csv` → top-K restaurant recommendations per hotel  
+- The **FastAPI backend** loads these pre-computed files and serves results directly to the UI.  
+- The current design can easily extend to a **cloud database** or **real-time updates** in future versions
 
 ---
 
@@ -90,13 +93,22 @@ Below are the three key diagrams that describe the system’s design.
 
 ---
 
-### 🧪 API Endpoints (Example)
+The backend reads from pre-computed CSVs in `/data/` and exposes simple JSON routes:
+### 🧪 API Routes (File-Based)
 ```text
 GET  /api/hotels/top?limit=5
 GET  /api/hotels/{hotel_id}/restaurants?top_k=5
 POST /api/score/preview   # body: { radius_m, price_levels, cuisines, weights }
 GET  /health
 ```
+
+---
+
+### 🗂️ Data Management
+- Source data for hotels and restaurants is stored in `/data/`.  
+- Each CSV can be replaced or extended without code changes.  
+- Outputs from the scoring model are saved back into `/data/` for reuse.  
+- This design keeps the system **lightweight, portable, and reproducible**.
 
 ---
 
