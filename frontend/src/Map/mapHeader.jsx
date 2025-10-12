@@ -4,11 +4,13 @@ import "./mapHeader.css";
 function MapHeader() {
   return (
     <div className="mapHeader-container">
-      <h1>Map</h1>
-      <p></p>
+      <img src="Mariott2.png" alt="Logo" className="mapHeader-logo" />
+      <h1 className="mapHeader-title">View Hotel Locations</h1>
     </div>
   );
 }
+
+
 
 export default MapHeader;
 export { MapHeader };
