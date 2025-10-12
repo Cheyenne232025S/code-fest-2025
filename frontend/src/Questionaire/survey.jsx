@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./survey.css";
 
 function Survey() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [savedResponses, setSavedResponses] = useState([]);
-  // track whether the first response was already saved (persisted)
-  const [firstSaved, setFirstSaved] = useState(false);
 
   // Define questions — supports "single", "multiple", and "text"
   const questions = [
@@ -47,82 +44,6 @@ function Survey() {
     }
   ];
 
-  // Load saved responses from localStorage on mount
-  useEffect(() => {
-    let existing = JSON.parse(localStorage.getItem("surveyResponses") || "[]");
-    // enforce max 1 saved response (keep most recent if array is present)
-    if (existing.length > 1) {
-      existing = [existing[0]];
-      try {
-        localStorage.setItem("surveyResponses", JSON.stringify(existing));
-      } catch (err) {
-        // ignore storage errors
-      }
-    }
-    setSavedResponses(existing);
-    // reflect whether there are saved responses (UI only)
-    setFirstSaved(existing.length > 0);
-
-    // restore draft (per-question autosave) if present
-    try {
-      const draft = JSON.parse(localStorage.getItem("surveyDraft") || "null");
-      if (draft && draft.answers) {
-        setAnswers(draft.answers);
-        // always start at the beginning page on reload
-        setStep(0);
-      }
-    } catch (err) {
-      // ignore parse errors
-    }
-  }, []);
-
-  // Auto-save the FIRST completion when the user reaches the summary
-  useEffect(() => {
-    // summary is shown when step is questions.length + 1
-    if (step === questions.length + 1) {
-      // Replace stored responses with a single (most recent) payload
-      const payload = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        answers,
-      };
-      const updated = [payload]; // only keep this one
-      try {
-        localStorage.setItem("surveyResponses", JSON.stringify(updated));
-      } catch (err) {
-        // ignore storage errors
-      }
-      setSavedResponses(updated);
-      setFirstSaved(true);
-      localStorage.removeItem("surveyDraft");
-    }
-  }, [step]); // run when step changes
-
-  // Auto-save draft after each question change (answers or step)
-  useEffect(() => {
-    // only save drafts once the user has started (step > 0)
-    if (step <= 0) return;
-    // don't save an empty answers object
-    if (!answers || Object.keys(answers).length === 0) {
-      localStorage.removeItem("surveyDraft");
-      return;
-    }
-
-    const normalizedAnswers = Object.fromEntries(
-      Object.entries(answers).map(([k, v]) => [String(k), v])
-    );
-    const draft = {
-      timestamp: new Date().toISOString(),
-      step,
-      answers: normalizedAnswers,
-    };
-    try {
-      localStorage.setItem("surveyDraft", JSON.stringify(draft));
-    } catch (err) {
-      // ignore quota/storage issues
-    }
-  }, [answers, step, questions.length]);
- 
   // Handle input changes for different question types
   const handleChange = (questionId, value, isMultiple) => {
     setAnswers((prev) => {
@@ -161,35 +82,6 @@ function Survey() {
   const restartSurvey = () => {
     setAnswers({});
     setStep(0);
-    // clear any draft when restarting
-    localStorage.removeItem("surveyDraft");
-  };
-
-  const saveCurrentResponse = () => {
-    // Always allow explicit manual save. Replace stored responses with this one (max=1).
-    const normalizedAnswers = Object.fromEntries(
-      Object.entries(answers).map(([k, v]) => [String(k), v])
-    );
-    const payload = {
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-      answers: normalizedAnswers,
-    };
-    const updated = [payload]; // enforce single saved response
-    try {
-      localStorage.setItem("surveyResponses", JSON.stringify(updated));
-    } catch (err) {
-      // ignore storage errors
-    }
-    setSavedResponses(updated);
-    setFirstSaved(true);
-    // clear draft after manual full save
-    localStorage.removeItem("surveyDraft");
-  };
-
-  const clearSavedResponses = () => {
-    localStorage.removeItem("surveyResponses");
-    setSavedResponses([]);
   };
 
   const sendToBackend = async (payload) => {
@@ -207,19 +99,6 @@ function Survey() {
       throw err;
     }
   };
-
-  const sendSavedResponses = async () => {
-    if (savedResponses.length === 0) return;
-    try {
-      // send all saved responses in one request; adjust as needed
-      await sendToBackend({ responses: savedResponses });
-      // optionally clear after successful send:
-      // clearSavedResponses();
-    } catch (err) {
-      // handle/send error to user
-    }
-  };
-
 
   // Helper: return true only if every question has an answer (text must be non-empty)
   const allAnswered = () => {
@@ -251,35 +130,11 @@ function Survey() {
 
     try {
       const backendResponse = await sendToBackend(payload);
-      // store backend response so /map can read it (sessionStorage cleared on tab close)
-      try {
-        sessionStorage.setItem("surveySubmission", JSON.stringify(backendResponse));
-      } catch (err) {
-        // ignore storage errors
-      }
     } catch (e) {
-      // optionally show an error to the user; proceed to map regardless
       console.error("Submit failed", e);
     } finally {
-      // navigate to /map where the page can read sessionStorage['surveySubmission']
       window.location.href = "/map";
     }
-  };
-
-  // Load the single saved response (if any) and show the summary
-  const handleLoadSaved = () => {
-    // prefer in-memory state, fallback to localStorage
-    const existing = savedResponses.length
-      ? savedResponses
-      : JSON.parse(localStorage.getItem("surveyResponses") || "[]");
-    if (!existing || existing.length === 0) {
-      alert("No saved response found.");
-      return;
-    }
-    const saved = existing[0];
-    // set answers and jump to the summary view
-    setAnswers(saved.answers || {});
-    setStep(questions.length + 1);
   };
 
   const [weights, setWeights] = useState({
@@ -289,19 +144,19 @@ function Survey() {
     cuisine: 0.15,
   });
 
-const handleWeightChange = (key, value) => {
-  const floatVal = parseFloat(value);
-  if (isNaN(floatVal)) return;
+  const handleWeightChange = (key, value) => {
+    const floatVal = parseFloat(value);
+    if (isNaN(floatVal)) return;
 
-  const updated = { ...weights, [key]: floatVal };
-  const total = Object.values(updated).reduce((sum, val) => sum + val, 0);
+    const updated = { ...weights, [key]: floatVal };
+    const total = Object.values(updated).reduce((sum, val) => sum + val, 0);
 
-  if (total <= 1.0) {
-    setWeights(updated);
-  } else {
-    alert("Total weight cannot exceed 1.0");
-  }
-};
+    if (total <= 1.0) {
+      setWeights(updated);
+    } else {
+      alert("Total weight cannot exceed 1.0");
+    }
+  };
 
   return (
     <div className="survey-container">

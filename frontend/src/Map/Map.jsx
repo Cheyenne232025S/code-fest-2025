@@ -8,26 +8,10 @@ export default function Map() {
   const [submission, setSubmission] = useState(null);
 
   useEffect(() => {
-    const rawSession = sessionStorage.getItem("surveySubmission");
-    const rawLocal = localStorage.getItem("surveyResponses");
-    let parsed = null;
-
-    try {
-      if (rawSession) {
-        parsed = JSON.parse(rawSession);
-        if (parsed && typeof parsed === "object") {
-          if (parsed.data) parsed = parsed.data;
-          else if (parsed.summary) parsed = parsed.summary;
-        }
-      } else if (rawLocal) {
-        const arr = JSON.parse(rawLocal);
-        if (Array.isArray(arr) && arr.length > 0) parsed = arr[0];
-      }
-    } catch (err) {
-      console.error("Failed to parse survey data:", err);
-    }
-
-    setSubmission(parsed);
+    // No local/session storage usage — do not read persisted client data here.
+    // If you want to retrieve results from the backend, implement a fetch call here
+    // to an API endpoint (e.g. GET /results) and setSubmission with the response.
+    setSubmission(null);
   }, []);
 
   return (
