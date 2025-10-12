@@ -29,25 +29,10 @@ function Sidebar() {
   };
 
   useEffect(() => {
-    let parsed = null;
-    try {
-      const rawSession = sessionStorage.getItem("surveySubmission");
-      const rawLocal = localStorage.getItem("surveyResponses");
-
-      if (rawSession) {
-        parsed = JSON.parse(rawSession);
-        if (parsed && typeof parsed === "object") {
-          if (parsed.data) parsed = parsed.data;
-          else if (parsed.summary) parsed = parsed.summary;
-        }
-      } else if (rawLocal) {
-        const arr = JSON.parse(rawLocal);
-        if (Array.isArray(arr) && arr.length > 0) parsed = arr[0];
-      }
-    } catch (err) {
-      console.error("Failed to parse survey data in Sidebar:", err);
-    }
-    setSubmission(parsed);
+    // No local/session storage usage here.
+    // If you want to populate `submission` from the backend, perform a fetch call
+    // to an API endpoint (e.g. GET /results) and call setSubmission(response).
+    setSubmission(null);
   }, []);
 
   return (
