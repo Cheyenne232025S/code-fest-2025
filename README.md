@@ -112,3 +112,46 @@ GET  /health
 
 ---
 
+---
+
+## 🧮 The Model
+
+The model ranks restaurants near each hotel using a weighted scoring formula:
+
+``restaurant_score(r) = w_d s_dist + w_r s_rating + w_p s_pricefit + w_c s_cuisine``
+
+where:  
+
+- **d** = distance in meters between the hotel and restaurant  
+- **r₁⁄₂** = "half-life" distance from user’s preferred radius  
+- **s_dist = exp(−ln 2 × d_meters / r₁⁄₂)**  
+  - starts at 1 when distance = 0  
+  - drops to 0.5 at half-life distance  
+  - decays exponentially beyond that, reflecting diminishing sensitivity to distance  
+- **s_rating = (yelp rating) / 5**  
+  - normalized rating (0–1 range); defaults to 0 if missing  
+- **s_price fit** maps price levels: `$`→1, `$$`→2, `$$$`→3 …  
+  - if restaurant’s level is within user’s allowed range → 1, else 0  
+- **s_cuisine = 1** if any liked cuisine appears in the restaurant’s categories (case-insensitive), else 0  
+
+Weights *(w_d, w_r, w_p, w_c)* come from user sliders and must sum to 1.
+
+---
+
+
+---
+
+### ⚙️ Model Application
+
+For each hotel:
+1. The model evaluates all nearby restaurants and computes `score_r` ∈ [0, 1] using the formula above.  
+2. Restaurants are sorted in descending order by `score_r`.  
+3. The **hotel score** is calculated as the mean of its top 5 restaurant scores:
+
+\[
+hotel score = mean(top 5 restaurant scores)
+\]
+
+This generates:
+- `hotel_scores_with_recos.csv` → one row per hotel, aggregated scores  
+- `hotel_recommendations.csv` → top-K (usually 5) restaurants per hotel
