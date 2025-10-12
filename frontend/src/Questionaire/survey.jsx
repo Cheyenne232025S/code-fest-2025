@@ -28,7 +28,7 @@ function Survey() {
       id: 4,
       text: "Cuisine Preference?",
       type: "multiple",
-      options: ["Italian", "Chinese", "Mexican", "Greek", "Halal", "French", "Thai", "Korean"],
+      options: ["Sandwiches", "Breakfast/Brunch", "Pizza", "Italian", "Chinese", "Mexican", "Medaterranean", "Halal", "French", "Thai", "Korean", "Gluten Free"],
     },
     {
       id: 5, 
