@@ -8,6 +8,7 @@ function Sidebar() {
   const [llmData, setLlmData] = useState(null);
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmError, setLlmError] = useState(null);
+<<<<<<< HEAD
 
   // New: expanded hotel ids (to show restaurants)
   const [expanded, setExpanded] = useState([]);
@@ -28,6 +29,9 @@ function Sidebar() {
     }
   };
 
+=======
+    
+>>>>>>> c70b0b03478fc5387b8179f68be7dc1cc8be2ebb
   const fetchLLM = async () => {
     setLlmLoading(true);
     setLlmError(null);
@@ -38,7 +42,6 @@ function Sidebar() {
       });
       if (!res.ok) throw new Error(`Status ${res.status}`);
       const json = await res.json();
-      // backend returns { status, message, data }
       setLlmData(json.data ?? JSON.stringify(json));
     } catch (err) {
       setLlmError(err.message || String(err));
@@ -46,6 +49,95 @@ function Sidebar() {
       setLlmLoading(false);
     }
   };
+
+  // const fetchLLM = async () => {
+  //   setLlmLoading(true);
+  //   setLlmError(null);
+  //   try {
+  //     const res = await fetch("http://localhost:8000/submit/", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //     });
+  //     if (!res.ok) throw new Error(`Status ${res.status}`);
+  //     const json = await res.json();
+  //     // backend returns { status, message, data }
+  //     setLlmData(json.data ?? JSON.stringify(json));
+  //   } catch (err) {
+  //     setLlmError(err.message || String(err));
+  //   } finally {
+  //     setLlmLoading(false);
+  //   }
+  // };
+
+//   const fetchLLM = async () => {
+//   setLlmLoading(true);
+//   setLlmError(null);
+//   try {
+//     const res = await fetch("http://localhost:8000/submit/", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//     });
+//     if (!res.ok) throw new Error(`Status ${res.status}`);
+//     const json = await res.json();
+//     setLlmData(json.data ?? JSON.stringify(json));
+//   } catch (err) {
+//     setLlmError(err.message || String(err));
+//   } finally {
+//     setLlmLoading(false);
+//   }
+// };
+
+// const fetchLLM = async (answers) => {
+//   setLlmLoading(true);
+//   setLlmError(null);
+//   try {
+//     const payload = {
+//       id: Date.now(),
+//       timestamp: new Date().toISOString(),
+//       answers,
+//     };
+
+//     const res = await fetch("http://localhost:8000/submit/", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(payload), // ✅ Send the payload here
+//     });
+
+//     if (!res.ok) throw new Error(`Status ${res.status}`);
+//     const json = await res.json();
+
+//     // Your backend returns { status, city, prefs, recommendations, summary }
+//     setLlmData(json.summary ?? JSON.stringify(json));
+//   } catch (err) {
+//     setLlmError(err.message || String(err));
+//   } finally {
+//     setLlmLoading(false);
+//   }
+// };
+
+//   const fetchLLM = async () => {
+//   setLlmLoading(true);
+//   setLlmError(null);
+
+//   try {
+//     const res = await fetch("http://localhost:8000/compare/", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         top_hotels: topHotels,     // 👈 your scored hotel list
+//         user_prefs: userPrefs      // 👈 transformed survey answers
+//       })
+//     });
+
+//     if (!res.ok) throw new Error(`Status ${res.status}`);
+//     const json = await res.json();
+//     setLlmData(json.data ?? JSON.stringify(json));
+//   } catch (err) {
+//     setLlmError(err.message || String(err));
+//   } finally {
+//     setLlmLoading(false);
+//   }
+// };
 
   useEffect(() => {
     // Fetch latest submission from backend (no local/session storage)

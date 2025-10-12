@@ -35,7 +35,7 @@ def get_family_friendly_hotels() -> str:
     except Exception as e:
         return f"Error during generation: {str(e)}"
     
-##########################
+# ##########################
 # import google.generativeai as genai
 
 # genai.configure(api_key="AIzaSyAFqz4rBwUP6_L4V2suoeUTY-WOUicMLGI")

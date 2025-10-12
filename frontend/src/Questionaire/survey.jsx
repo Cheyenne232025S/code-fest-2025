@@ -100,6 +100,7 @@ function Survey() {
     }
   };
 
+
   // Helper: return true only if every question has an answer (text must be non-empty)
   const allAnswered = () => {
     return questions.every((q) => {
