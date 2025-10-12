@@ -1,6 +1,7 @@
 # scoring_model.py
 import pandas as pd, numpy as np, math, json, ast
 from pathlib import Path
+import os
 
 # -----------------------------
 # 1) Load inputs
@@ -11,15 +12,35 @@ def main(user_prefs=None):
     override the local default user_prefs used by the script.
     Returns a small dict with output file paths and top hotels sample.
     """
-    # Adjust paths if your repo layout differs
-    hotels_path       = "../data/hotels_nyc_geocoded.csv"         # geocoded hotels (one row per hotel)
-    nearby_path       = "./data/restaurants_near_hotels.csv"     # Yelp results pulled per hotel
-    scores_out_path   = "./data/hotel_scores_with_recos.csv"     # aggregated per-hotel
-    recs_out_path     = "./data/hotel_recommendations.csv"       # long, one row per (hotel, restaurant) in top-k
+    # Robust data paths for running under uvicorn (cwd may differ).
+    # Prefer data directory next to backend (../data), allow override via DATA_DIR env var,
+    # and fall back to ./data relative to current working directory.
+    base_dir = Path(__file__).resolve().parent         # notes/
+    backend_dir = base_dir.parent                       # backend/
+    data_dir = Path(os.environ.get("DATA_DIR", backend_dir / "data"))
+
+    hotels_path = data_dir / "hotels_nyc_geocoded.csv"
+    nearby_path = data_dir / "restaurants_near_hotels.csv"
+    scores_out_path = data_dir / "hotel_scores_with_recos.csv"
+    recs_out_path = data_dir / "hotel_recommendations.csv"
+
+    if not hotels_path.exists() or not nearby_path.exists():
+        # Try fallback to ./data relative to current working directory
+        alt_hotels = Path("data") / "hotels_nyc_geocoded.csv"
+        alt_nearby = Path("data") / "restaurants_near_hotels.csv"
+        if alt_hotels.exists() and alt_nearby.exists():
+            hotels_path = alt_hotels
+            nearby_path = alt_nearby
+            print("Falling back to ./data in current working directory.")
+        else:
+            raise FileNotFoundError(
+                f"Data files not found. Checked: {hotels_path} and {nearby_path}.\n"
+                "Place CSVs in backend/data, ./data relative to cwd, or set DATA_DIR env var to the data folder."
+            )
 
     hotels = pd.read_csv(hotels_path)
     restaurants = pd.read_csv(nearby_path)
-
+    print("Loaded csvs")
     # -----------------------------
     # 2) Light cleaning / parsing
     # -----------------------------
@@ -85,7 +106,9 @@ def main(user_prefs=None):
             # How many recommendations to keep per hotel
             "top_k": 5
         }
+    print("Before assert")
     assert abs(sum(user_prefs["weights"].values()) - 1.0) < 1e-9, "Weights must sum to 1.0"
+    print("After assert")
 
     # -----------------------------
     # 4) Scoring helpers
@@ -262,7 +285,6 @@ def main(user_prefs=None):
         for r in sample[:5]:
             print(f" - {r['name']}  ({r.get('rating','?')}★, {r.get('distance_m','?')} m, s={r.get('score','?')})")
 
-    
     return result
 
 if __name__ == "__main__":

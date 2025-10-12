@@ -69,7 +69,6 @@ def llm_endpoint():
 @app.post("/submit/")
 def submit_response(response: SurveyResponse):
     answers = response.answers
-    print(response.answers)
 
     # Defensive checks: ensure expected questions exist
     required_qs = ["1", "2", "4", "5", "6"]
@@ -121,6 +120,7 @@ def submit_response(response: SurveyResponse):
     }
     try:
         recommendations = main(user_prefs)  # make sure main() accepts user_prefs as arg
+        print(recommendations)
     except Exception as e:
         return {
             "status": "error",
