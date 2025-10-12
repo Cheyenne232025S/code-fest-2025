@@ -159,8 +159,8 @@ function Survey() {
       <div className="survey-card">
         <h2 className="survey-title">Travel Survey</h2>
           <div className="survey-intro">
-                <h3 style={{ color: "#B41F3A" }}>Welcome!</h3>
-                <p style={{ color: "#B41F3A" }}>
+                {/* <h3 style={{ color: "#B41F3A", fontSize: "32px" }}>Welcome!</h3> */}
+                <p style={{ color: "#000000" }}>
                   Help us personalize your travel experience. This quick survey takes less than a minute.
                 </p>
               </div>
