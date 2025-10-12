@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./sidebar.css";
+import ReactMarkdown from "react-markdown";
 
 function Sidebar() {
   const [submission, setSubmission] = useState(null);
@@ -266,17 +267,29 @@ function Sidebar() {
         </button>
         {llmError && <div style={{ color: "crimson", marginTop: 8 }}>Error: {llmError}</div>}
         {llmData && (
-          <pre
-            style={{
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              marginTop: 8,
-              fontSize: "0.85rem" // smaller font for LLM response
-            }}
-          >
-            {typeof llmData === "string" ? llmData : JSON.stringify(llmData, null, 2)}
-          </pre>
-        )}
+      <div
+        className="llm-recommendation"
+        style={{
+          marginTop: 8,
+          fontSize: "0.85rem",
+          fontFamily: "'Playfair Display', serif",
+          whiteSpace: "normal", // allow normal wrapping
+          wordBreak: "break-word"
+        }}
+      >
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => (
+              <p style={{ margin: "0.4rem 0", lineHeight: "1.4" }}>{children}</p>
+            )
+          }}
+        >
+          {typeof llmData === "string" ? llmData : JSON.stringify(llmData, null, 2)}
+        </ReactMarkdown>
+      </div>
+    )}
+
+        
       </div>
 
       {/* New: clean recommendations UI */}
