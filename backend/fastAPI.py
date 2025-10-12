@@ -1,7 +1,7 @@
 # backend/main.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from LLM_test import get_family_friendly_hotels
 import json
@@ -41,6 +41,7 @@ class SurveyResponse(BaseModel):
     id: int                       # timestamp in milliseconds
     timestamp: str                # ISO datetime string
     answers: Dict[str, List[Any]] # question ID -> array of answers (allow non-string items like numbers)
+    weights: Optional[Dict[str, float]]=None
     
 
 # -------------------
@@ -109,13 +110,13 @@ def submit_response(response: SurveyResponse):
     }
     price_levels = price_map.get(price_pref)
     liked_cuisines = [c.lower() for c in cuisines]
-
+    incoming_wegihts = response.weights
     # --- 3️⃣ Build user_prefs dict for your scoring model ---
     user_prefs = {
         "preferred_radius_m": distance_pref_miles * 1600,
         "liked_cuisines": liked_cuisines,
         "price_levels": price_levels,
-        "weights": {
+        "weights": incoming_wegihts or {
             "distance": 0.35,
             "rating": 0.35,
             "price": 0.15,

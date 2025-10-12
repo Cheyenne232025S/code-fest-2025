@@ -127,6 +127,7 @@ function Survey() {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       answers: normalizedAnswers,
+      weights,
     };
 
     try {
