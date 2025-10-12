@@ -1,6 +1,6 @@
 /* Standardized header styles to match Questionaire header */
 .mapHeader-container {
-  position: fixed;
+  position: relative; /* Add this to establish positioning context */
   top: 0;
   left: 0;
   width: 100%;
@@ -28,5 +28,32 @@
   font-weight: 600;
   line-height: 1;
   font-family: 'Playfair Display', serif;
+}
+
+.info-icon {
+  width: 24px;
+  height: 24px;
+  background-color: #B41F3A;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-family: sans-serif;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+  
+  /* New positioning */
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.info-icon:hover {
+  background-color: #a11b33;
 }
 

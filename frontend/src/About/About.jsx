@@ -8,7 +8,7 @@ export default function About() {
       <AboutUsHeader />
 
       <section className="about-team">
-        <h2>Our Mission</h2>
+        <h2>O   on</h2>
         </section>
     </div>
   );
