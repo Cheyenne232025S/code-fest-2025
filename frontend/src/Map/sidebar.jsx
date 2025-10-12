@@ -28,6 +28,34 @@ function Sidebar() {
     }
   };
 
+  // Emit a map selection event so the map component can react
+  const emitMapSelection = (entity) => {
+    try {
+      window.dispatchEvent(new CustomEvent("selectMapEntity", { detail: entity }));
+    } catch (e) {
+      console.warn("Failed to emit map selection", e);
+    }
+  };
+
+  // Toggle expanded and notify map when expanding a hotel
+  const handleToggle = (id, hotelData = {}) => {
+    const willExpand = !expanded.includes(id);
+    toggleExpanded(id);
+    if (willExpand) {
+      const lat = Number(hotelData.lat ?? hotelData.latitude);
+      const lng = Number(hotelData.lon ?? hotelData.longitude ?? hotelData.lng);
+      emitMapSelection({
+        type: "hotel",
+        hotelId: id,
+        lat: lat,
+        lng: lng,
+        name: hotelData.name,
+        address: hotelData.address,
+        score: hotelData.score,
+      });
+    }
+  };
+
   const fetchLLM = async () => {
     setLlmLoading(true);
     setLlmError(null);
@@ -208,7 +236,7 @@ function Sidebar() {
                   </div>
 
                   <button
-                    onClick={() => toggleExpanded(id)}
+                    onClick={() => handleToggle(id, { lat, lon, name, address, score })}
                     className="btn btn-outline"
                     style={{ padding: "8px 16px", fontSize: "0.875rem", alignSelf: "flex-start" }}
                   >
@@ -221,21 +249,57 @@ function Sidebar() {
                     {restaurants.length ? (
                       <ul style={{ margin: 0, paddingLeft: 18 }}>
                         {restaurants.map((r, i) => (
-                          <li key={i} style={{ marginBottom: 6 }}>
+                          <li
+                            key={i}
+                            style={{ marginBottom: 6, cursor: "pointer" }}
+                            onClick={() =>
+                              emitMapSelection({
+                                type: "restaurant",
+                                hotelId: id,
+                                lat: Number(r.lat ?? r.latitude),
+                                lng: Number(r.lng ?? r.lon ?? r.longitude),
+                                name: r.name,
+                                rating: r.rating,
+                                price: r.price,
+                                distance_m: r.distance_m,
+                                cuisines: r.cuisines,
+                                url: r.url,
+                              })
+                            }
+                          >
                             <div style={{ fontWeight: 600 }}>{r.name ?? "Unnamed"}</div>
                             <div style={{ fontSize: 12, color: "#555" }}>
                               {r.rating ? `${r.rating}★` : ""}
                               {r.price ? ` • ${r.price}` : ""}
                               {/* {r.distance_m ? ` • ${Math.round(r.distance_m)} m` : ""} */}
                               {r.distance_m ? ` • ${(r.distance_m * 0.000621371).toFixed(2)} mi` : ""}
-                              {/* {r.cuisines ? ` • ${Array.isArray(r.cuisines) ? r.cuisines.join(", ") : r.cuisines}` : ""} */}
-                              {r.cuisines && Array.isArray(r.cuisines)
-                                ? ` • ${r.cuisines.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(", ")}`
-                                : r.cuisines ? ` • ${r.cuisines}` : ""}
+                              {/* cuisines: replace underscores with "/" then format */}
+                              {r.cuisines &&
+                                (() => {
+                                  const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+                                  if (Array.isArray(r.cuisines)) {
+                                    return " • " + r.cuisines.map(c => capitalize(String(c).replace(/_/g, "/"))).join(", ");
+                                  }
+                                  // string case (comma-separated)
+                                  return (
+                                    " • " +
+                                    String(r.cuisines)
+                                      .split(",")
+                                      .map(s => s.trim().replace(/_/g, "/"))
+                                      .map(capitalize)
+                                      .join(", ")
+                                  );
+                                })()}
                             </div>
                             {r.url ? (
                               <div style={{ marginTop: 4 }}>
-                                <a href={r.url} target="_blank" rel="noreferrer" style={{ fontSize: 12 }}>
+                                <a
+                                  href={r.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{ fontSize: 12 }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   View on Yelp
                                 </a>
                               </div>
