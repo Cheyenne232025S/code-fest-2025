@@ -15,15 +15,17 @@
 
 ## 🏗️ Architecture Overview
 
-### 🧭 System Diagram
+Below are the three key diagrams that describe the system’s design.
 
-```mermaid
-flowchart LR
-    User[User in Browser] --> UI[React Web App]
-    UI --> API[FastAPI Backend]
-    API --> DB[(Postgres Database)]
-    API --> Storage[(File Storage / Images)]
-```
+### 1️⃣ System Diagram
+![System Architecture Overview](images/Deployment_view_diagram.svg)
+
+### 2️⃣ Data & Scoring Flow
+![Data and Scoring Flow](images/data_and_scoring_flow.svg)
+
+### 3️⃣ Deployment Overview
+![Deployment Overview](images/high_level_diagram.svg)
+
 
 ### 🧠API
 
