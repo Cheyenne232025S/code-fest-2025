@@ -14,7 +14,10 @@ import json
 
 
 genai.configure(api_key="AIzaSyAFqz4rBwUP6_L4V2suoeUTY-WOUicMLGI")
-model = genai.GenerativeModel("gemini-2.5-flash")  # or "gemini-2.5-flash" if available
+model = genai.GenerativeModel(
+   model_name="gemini-2.5-flash",
+   system_instruction="You are a travel concierge specializing in hotel recommendations in NYC."
+   )  # or "gemini-2.5-flash" if available
 def generate_summary_with_gemini(payload):
     print("Payload received for LLM:", payload)
     city = payload.get("city", "NYC")
@@ -58,16 +61,22 @@ def generate_summary_with_gemini(payload):
         """
 
     prompt += """
-    Write a compelling 4-sentence recommendation explaining:
+    Write a short but compelling recommendation explaining:
     1. Which Marriott is best for THIS traveler
     2. Why (specific restaurants and experiences)
     3. What makes it better than the other options
     4. One unique dining experience they'll love
 
-    Be enthusiastic and specific. Make them excited to book.
+    Be enthusiastic, specific, and professional. Make them excited to book.
     """
 
-    response = model.generate_content(prompt)
+    response = model.generate_content(
+        prompt,
+                generation_config={
+            # "max_output_tokens": 1024,
+            "temperature": 0.5,
+        }
+      )
     return response.text.strip()
 
 
