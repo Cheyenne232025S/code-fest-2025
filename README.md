@@ -35,7 +35,7 @@ Below are the three key diagrams that describe the system’s design.
 ---
 
 ### 🧱 Modularity & Composability
-- **Layers:** UI (React) → API (FastAPI) → Data (Postgres + File Storage) → Model (`scoring_model.py`)
+- **Layers:** UI (React) → API (FastAPI) → Data (File Storage) → Model (`scoring_model.py`)
 - **Design:** Each layer is isolated — frontend handles presentation, backend handles logic, and the model runs scoring separately.
 - **Reusable components:** CSV outputs and data loaders can be swapped for future APIs or database integrations.
 - **Organization:**  
