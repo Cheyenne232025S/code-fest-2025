@@ -4,13 +4,22 @@
   left: 0;
   width: 100%;
   height: calc(100% - 70px);
-  background-color: #1C1C1C;
-  /* background-image: url("MrriottOrlando.jpg");  */
+  background-image: url("/frontend/MarriottOrlando.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  color: #F0F0F0;
-  text-align: center;
-  font-size: 24px;
-  padding-top: 0;
+}
+
+.questionaire-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 28, 28, 0.6); /* dark overlay */
+  z-index: 0;
+}
+
+/* Make sure the content stays above the overlay */
+.questionaire-container > * {
+  position: relative;
+  z-index: 1;
 }

@@ -17,7 +17,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # import notes.score_model  # Now you can use score_model.main()
-from notes.score_model import main
+from notes.score_model_v2 import main
 
 
 # -------------------

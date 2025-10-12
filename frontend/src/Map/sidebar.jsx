@@ -229,7 +229,8 @@ function Sidebar() {
                             <div style={{ fontSize: 12, color: "#555" }}>
                               {r.rating ? `${r.rating}★` : ""}
                               {r.price ? ` • ${r.price}` : ""}
-                              {r.distance_m ? ` • ${Math.round(r.distance_m)} m` : ""}
+                              {/* {r.distance_m ? ` • ${Math.round(r.distance_m)} m` : ""} */}
+                              {r.distance_m ? ` • ${(r.distance_m * 0.000621371).toFixed(2)} mi` : ""}
                               {/* {r.cuisines ? ` • ${Array.isArray(r.cuisines) ? r.cuisines.join(", ") : r.cuisines}` : ""} */}
                               {r.cuisines && Array.isArray(r.cuisines)
                                 ? ` • ${r.cuisines.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(", ")}`
