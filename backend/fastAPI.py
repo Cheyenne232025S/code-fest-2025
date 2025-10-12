@@ -109,7 +109,7 @@ def submit_response(response: SurveyResponse):
         "$$$$": [1, 2, 3, 4]
     }
     price_levels = price_map.get(price_pref)
-    liked_cuisines = [c.lower() for c in cuisines]
+    liked_cuisines = [str(c).lower().replace("/", "_").replace(" ", "_") for c in (cuisines or [])]
     incoming_wegihts = response.weights
     # --- 3️⃣ Build user_prefs dict for your scoring model ---
     user_prefs = {
