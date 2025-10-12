@@ -18,13 +18,19 @@
 Below are the three key diagrams that describe the system’s design.
 
 ### 1️⃣ System Diagram
-![System Architecture Overview](images/Deployment_view_diagram.svg)
+<p align="center">
+  <img src="images/Deployment_view_diagram.svg" width="650" alt="System Diagram">
+</p>
 
 ### 2️⃣ Data & Scoring Flow
-![Data and Scoring Flow](images/data_and_scoring_flow.svg)
+<p align="center">
+  <img src="images/data_and_scoring_flow.svg" width="650" alt="Data & Scoring Flow">
+</p>
 
 ### 3️⃣ Deployment Overview
-![Deployment Overview](images/high_level_diagram.svg)
+<p align="center">
+  <img src="images/high_level_diagram.svg" width="650" alt="Deployment Overview">
+</p>
 
 
 ### 🧠API
