@@ -102,6 +102,24 @@
     transform: translateY(-1px);
 }
 
+.btn.btn-outline {
+  background-color: #B41F3A;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+}
+.llm-btn.btn-outline {
+  background-color: #B41F3A;
+  color: white;
+  border: 1px solid #000000; /* ✅ combine border width and color */
+  padding: 12px 20px;         /* ✅ more space inside the button */
+  font-size: 20px;            /* ✅ larger text */
+  border-radius: 6px;         /* optional: rounded corners for polish */
+  cursor: pointer;            /* optional: pointer cursor on hover */
+  font-family: 'Playfair Display', serif;
+}
+
+
 /* LLM section */
 .llm-section {
     margin-bottom: 12px;

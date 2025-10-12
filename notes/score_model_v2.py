@@ -88,7 +88,6 @@ def main(user_prefs=None):
     # -----------------------------
     # 3) User prefs (tweak freely)
     # -----------------------------
-    incoming_weights = restaurants.get("weights")
     if user_prefs is None:
         user_prefs = {
             # Distance half-life in meters: the distance component halves at this distance
@@ -98,7 +97,7 @@ def main(user_prefs=None):
             # Allowed price levels (1..4). Empty list => ignore price
             "price_levels": [1, 2, 3], # multi choice; number of $$$
             # Feature weights (must sum to 1)
-            "weights": incoming_weights or {
+            "weights": {
                 "distance": 0.35,
                 "rating":   0.35,
                 "price":    0.15,
@@ -107,9 +106,21 @@ def main(user_prefs=None):
             # How many recommendations to keep per hotel
             "top_k": 5
         }
-    print("Before assert")
-    assert abs(sum(user_prefs["weights"].values()) - 1.0) < 1e-9, "Weights must sum to 1.0"
-    print("After assert")
+    def softmax_weights(raw_weights: dict, alpha: float = 1.0) -> dict:
+            """Normalize arbitrary non-negative weights into a smooth distribution.
+
+            alpha = temperature (higher → sharper, lower → flatter)
+            """
+            keys, vals = zip(*raw_weights.items())
+            vals = np.array(vals, dtype=float)
+            vals = np.maximum(vals, 0)  # disallow negatives
+            expv = np.exp(alpha * vals)
+            probs = expv / expv.sum() if expv.sum() > 0 else np.ones_like(expv) / len(expv)
+            return dict(zip(keys, probs))
+
+        # replace the assert with this:
+    user_prefs["weights"] = softmax_weights(user_prefs["weights"], alpha=1.2)
+    print("Softmax-normalized weights:", user_prefs["weights"])
 
     # -----------------------------
     # 4) Scoring helpers

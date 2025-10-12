@@ -165,12 +165,12 @@ function Sidebar() {
     if (!hotelIds.length) return null;
 
     return (
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 12,fontFamily: "Playfair Display, serif"  }}>
         <div style={{ marginBottom: 8 }}>
-          <strong>Recommendations</strong>
-          <div style={{ fontSize: 13, color: "#444" }}>
+          <strong >Recommendations</strong>
+          <div style={{ fontSize: 13, color: "#444", fontFamily: "Playfair Display, serif" }}>
             {submission.city ? `${submission.city}` : null}
-            {submission.prefs ? ` — top ${submission.prefs.top_k ?? "N/A"}` : null}
+            {submission.prefs ? ` — Top ${submission.prefs.top_k ?? "N/A"}` : null}
           </div>
         </div>
 
@@ -190,35 +190,33 @@ function Sidebar() {
               <div
                 key={id}
                 style={{
-                  border: "1px solid #e6e6e6",
+                  border: "1px solid #000000",
                   padding: 10,
                   borderRadius: 6,
                   background: "#fff",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <div>
-                    <div style={{ fontWeight: 600 }}>{name}</div>
-                    <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                    <div style={{ fontWeight: 600, color: "#1f2937", fontSize: "1.125rem" }}>{name}</div>
+                    <div style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0.25rem" }}>
                       {brand ? `${brand} • ` : ""}
                       {neighborhood ? `${neighborhood}` : ""}
                       {address ? ` • ${address}` : ""}
                     </div>
-                    <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                    <div style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0.25rem" }}>
                       {typeof score !== "undefined" ? `Score: ${Number(score).toFixed(3)}` : null}
                       {lat && lon ? ` • (${lat.toFixed(5)}, ${lon.toFixed(5)})` : ""}
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <button
-                      onClick={() => toggleExpanded(id)}
-                      className="btn btn-outline"
-                      style={{ padding: "6px 10px" }}
-                    >
-                      {expanded.includes(id) ? "Hide restaurants" : `Show ${restaurants.length} restaurants`}
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => toggleExpanded(id)}
+                    className="btn btn-outline"
+                    style={{ padding: "8px 16px", fontSize: "0.875rem", alignSelf: "flex-start" }}
+                  >
+                    {expanded.includes(id) ? "Hide restaurants" : `Show ${restaurants.length} restaurants`}
+                  </button>
                 </div>
 
                 {expanded.includes(id) && (
@@ -232,7 +230,10 @@ function Sidebar() {
                               {r.rating ? `${r.rating}★` : ""}
                               {r.price ? ` • ${r.price}` : ""}
                               {r.distance_m ? ` • ${Math.round(r.distance_m)} m` : ""}
-                              {r.cuisines ? ` • ${Array.isArray(r.cuisines) ? r.cuisines.join(", ") : r.cuisines}` : ""}
+                              {/* {r.cuisines ? ` • ${Array.isArray(r.cuisines) ? r.cuisines.join(", ") : r.cuisines}` : ""} */}
+                              {r.cuisines && Array.isArray(r.cuisines)
+                                ? ` • ${r.cuisines.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(", ")}`
+                                : r.cuisines ? ` • ${r.cuisines}` : ""}
                             </div>
                             {r.url ? (
                               <div style={{ marginTop: 4 }}>
@@ -259,12 +260,12 @@ function Sidebar() {
 
   return (
     <div className="sidebar-container">
-      <h1>Sidebar</h1>
+      <h1 style={{ fontSize: "48px", fontFamily: "Playfair Display, serif" }}>Your Results</h1>
 
       {/* LLM section: button to fetch and display /llm/ data */}
       <div style={{ marginBottom: 12 }}>
-        <button className="btn btn-outline" onClick={fetchLLM} disabled={llmLoading}>
-          {llmLoading ? "Loading…" : "Fetch LLM recommendations"}
+        <button className="llm-btn btn-outline" onClick={fetchLLM} disabled={llmLoading}>
+          {llmLoading ? "Loading…" : "Read LLM recommendations"}
         </button>
         {llmError && <div style={{ color: "crimson", marginTop: 8 }}>Error: {llmError}</div>}
         {llmData && (
