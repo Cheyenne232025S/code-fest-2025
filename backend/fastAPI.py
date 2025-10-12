@@ -1,7 +1,7 @@
 # backend/main.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
 from LLM_test import get_family_friendly_hotels
 import json
@@ -38,7 +38,7 @@ app.add_middleware(
 class SurveyResponse(BaseModel):
     id: int                       # timestamp in milliseconds
     timestamp: str                # ISO datetime string
-    answers: Dict[str, List[str]] # question ID -> array of answers
+    answers: Dict[str, List[Any]] # question ID -> array of answers (allow non-string items like numbers)
     
 
 # -------------------
@@ -71,13 +71,29 @@ def submit_response(response: SurveyResponse):
     answers = response.answers
     print(response.answers)
 
+    # Defensive checks: ensure expected questions exist
+    required_qs = ["1", "2", "4", "5", "6"]
+    missing = [q for q in required_qs if q not in answers or not answers[q]]
+    if missing:
+        return {
+            "status": "error",
+            "message": f"Missing answers for questions: {', '.join(missing)}"
+        }
+
     # --- 1️⃣ Extract survey answers ---
-    city = answers.get("1")[0]
-    distance_pref_miles = answers.get("2")[0]
-    # travel_reason = answers.get("3")[0]
-    cuisines = answers.get("4")[0]
-    rating_pref = answers.get("5")[0]
-    price_pref = answers.get("6")[0]
+    city = str(answers.get("1")[0])
+    # answers may contain numbers (slider) or strings; coerce to float safely
+    try:
+        distance_pref_miles = float(answers.get("2")[0])
+    except Exception:
+        return {
+            "status": "error",
+            "message": "Invalid distance value; expected a number."
+        }
+    # travel_reason = answers.get("3")[0]  # optional
+    cuisines = answers.get("4")
+    rating_pref = str(answers.get("5")[0])
+    price_pref = str(answers.get("6")[0])
 
     # --- 2️⃣ Convert to numeric / scoring-friendly format ---
 
