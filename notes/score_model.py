@@ -12,7 +12,7 @@ def main(user_prefs=None):
     Returns a small dict with output file paths and top hotels sample.
     """
     # Adjust paths if your repo layout differs
-    hotels_path       = "./data/hotels_nyc_geocoded.csv"         # geocoded hotels (one row per hotel)
+    hotels_path       = "../data/hotels_nyc_geocoded.csv"         # geocoded hotels (one row per hotel)
     nearby_path       = "./data/restaurants_near_hotels.csv"     # Yelp results pulled per hotel
     scores_out_path   = "./data/hotel_scores_with_recos.csv"     # aggregated per-hotel
     recs_out_path     = "./data/hotel_recommendations.csv"       # long, one row per (hotel, restaurant) in top-k

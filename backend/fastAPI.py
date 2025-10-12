@@ -39,6 +39,7 @@ class SurveyResponse(BaseModel):
     id: int                       # timestamp in milliseconds
     timestamp: str                # ISO datetime string
     answers: Dict[str, List[str]] # question ID -> array of answers
+    
 
 # -------------------
 # API Endpoints
@@ -48,9 +49,6 @@ class SurveyResponse(BaseModel):
 @app.get("/")
 def root():
     return {"message": "Survey API is running"}
-
-
-
 
 
 # @app.get("/llm/")
@@ -71,11 +69,12 @@ def llm_endpoint():
 @app.post("/submit/")
 def submit_response(response: SurveyResponse):
     answers = response.answers
+    print(response.answers)
 
     # --- 1️⃣ Extract survey answers ---
     city = answers.get("1")[0]
-    distance_pref = answers.get("2")[0]
-    travel_reason = answers.get("3")[0]
+    distance_pref_miles = float(answers.get("2")[0]) #??
+    # travel_reason = answers.get("3")[0]
     cuisines = answers.get("4")
     rating_pref = answers.get("5")[0]
     price_pref = answers.get("6")[0]
@@ -93,7 +92,7 @@ def submit_response(response: SurveyResponse):
 
     # --- 3️⃣ Build user_prefs dict for your scoring model ---
     user_prefs = {
-        "preferred_radius_m": distance_pref * 800,
+        "preferred_radius_m": distance_pref_miles * 1600,
         "liked_cuisines": liked_cuisines,
         "price_levels": price_levels,
         "weights": {
@@ -115,7 +114,7 @@ def submit_response(response: SurveyResponse):
     return {
         "status": "success",
         "city": city,
-        "reason": travel_reason,
+        # "reason": travel_reason,
         "prefs": user_prefs,
         "recommendations": recommendations
     }

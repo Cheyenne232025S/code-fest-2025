@@ -18,8 +18,8 @@ function Survey() {
     {
       id: 2,
       text: "What distance are you willing to travel for food?",
-      type: "multiple",
-      options: ["<1 Mile", "2–3 Miles", "More than 3 Miles"],
+      type: "slider",
+      // options: ["<1 Mile", "2–3 Miles", "More than 3 Miles"],
     },
     // {
     //   id: 3,
@@ -357,6 +357,23 @@ const handleWeightChange = (key, value) => {
                           onChange={(e) => handleTextChange(q.id, e.target.value)}
                         />
                       )}
+
+                      {q.type === "slider" && (
+                        <div className="survey-slider">
+                          <input
+                            type="range"
+                            min="0"
+                            max="10"
+                            step="0.1"
+                            value={answers[q.id]?.[0] || 0}
+                            onChange={(e) => handleTextChange(q.id, parseFloat(e.target.value))}
+                          />
+                          <div style={{ color: "#B41F3A" }}>{answers[q.id]?.[0] || 0} miles</div>
+                        </div>
+                      )}
+
+
+                      
                     </div>
                   </div>
                 ))}
