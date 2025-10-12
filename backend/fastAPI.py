@@ -136,8 +136,6 @@ def submit_response(response: SurveyResponse):
         LAST_SUBMISSION = payload
         return payload
 
-    #new_rec_data = pd.read
-
     payload = {
         "status": "success",
         "city": city,
