@@ -100,6 +100,7 @@ function Survey() {
     }
   };
 
+
   // Helper: return true only if every question has an answer (text must be non-empty)
   const allAnswered = () => {
     return questions.every((q) => {
@@ -126,6 +127,7 @@ function Survey() {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       answers: normalizedAnswers,
+      weights,
     };
 
     try {
@@ -226,8 +228,6 @@ function Survey() {
                           <div style={{ color: "#B41F3A" }}>{answers[q.id]?.[0] || 0} miles</div>
                         </div>
                       )}
-
-
                       
                     </div>
                   </div>

@@ -88,6 +88,7 @@ def main(user_prefs=None):
     # -----------------------------
     # 3) User prefs (tweak freely)
     # -----------------------------
+    incoming_weights = restaurants.get("weights")
     if user_prefs is None:
         user_prefs = {
             # Distance half-life in meters: the distance component halves at this distance
@@ -97,7 +98,7 @@ def main(user_prefs=None):
             # Allowed price levels (1..4). Empty list => ignore price
             "price_levels": [1, 2, 3], # multi choice; number of $$$
             # Feature weights (must sum to 1)
-            "weights": {
+            "weights": incoming_weights or {
                 "distance": 0.35,
                 "rating":   0.35,
                 "price":    0.15,
@@ -258,7 +259,7 @@ def main(user_prefs=None):
     result = {
         "scores_out_path": scores_out_path,
         "recs_out_path": recs_out_path,
-        "top_hotels": hotel_scores_df.head(10).to_dict(orient="records")
+        "top_hotels": hotel_scores_df.head(5)
     }
 
     print(f"✅ wrote: {scores_out_path}  ({hotel_scores_df['hotel_name'].nunique()} hotels, {len(hotel_scores_df)} rows)")
@@ -284,6 +285,26 @@ def main(user_prefs=None):
         print(f"\nFirst hotel: {hotel_scores_df.iloc[0]['hotel_name']}")
         for r in sample[:5]:
             print(f" - {r['name']}  ({r.get('rating','?')}★, {r.get('distance_m','?')} m, s={r.get('score','?')})")
+
+    top5_df = hotel_scores_df.head(5)
+    top5_list = []
+    for _, row in top5_df.iterrows():
+        # make sure top_restaurants is a real list/dict, not a string
+        restaurants = row["top_restaurants"]
+        if isinstance(restaurants, str):
+            try:
+                restaurants = ast.literal_eval(restaurants)
+            except:
+                restaurants = []
+    
+        # make each row into a clean Python dict
+        hotel_dict = {
+            "hotel_name": row["hotel_name"],
+            "score": row["score"],
+            "top_restaurants": restaurants
+        }
+        top5_list.append(hotel_dict)
+    print(top5_list)
 
     return result
 
