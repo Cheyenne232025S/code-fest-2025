@@ -1,14 +1,12 @@
 # backend/main.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
 from LLM_test import get_family_friendly_hotels
 import json
 from fastapi import FastAPI, Request
-# from LLM_test import get_family_friendly_hotels 
-# from LLM import generate_summary
-# from LLM import generate_summary_with_gemini
+from LLM_test import get_family_friendly_hotels  # make sure this function exists
 
 import sys
 import os
@@ -41,7 +39,6 @@ class SurveyResponse(BaseModel):
     id: int                       # timestamp in milliseconds
     timestamp: str                # ISO datetime string
     answers: Dict[str, List[Any]] # question ID -> array of answers (allow non-string items like numbers)
-    weights: Optional[Dict[str, float]]=None
     
 
 # -------------------
@@ -57,6 +54,13 @@ LAST_SUBMISSION = None
 @app.get("/")
 def root():
     return {"message": "Survey API is running"}
+
+
+# @app.get("/llm/")
+# def llm_endpoint():
+#     response_text = get_family_friendly_hotels()
+#     return { "data": response_text }
+
 
 @app.post("/llm/")
 def llm_endpoint():
@@ -110,13 +114,13 @@ def submit_response(response: SurveyResponse):
     }
     price_levels = price_map.get(price_pref)
     liked_cuisines = [c.lower() for c in cuisines]
-    incoming_wegihts = response.weights
+
     # --- 3️⃣ Build user_prefs dict for your scoring model ---
     user_prefs = {
         "preferred_radius_m": distance_pref_miles * 1600,
         "liked_cuisines": liked_cuisines,
         "price_levels": price_levels,
-        "weights": incoming_wegihts or {
+        "weights": {
             "distance": 0.35,
             "rating": 0.35,
             "price": 0.15,
@@ -126,7 +130,6 @@ def submit_response(response: SurveyResponse):
     }
     try:
         recommendations = main(user_prefs)  # make sure main() accepts user_prefs as arg
-        # summary = generate_summary_with_gemini(answers)
     except Exception as e:
         payload = {
             "status": "error",
@@ -140,8 +143,7 @@ def submit_response(response: SurveyResponse):
         "status": "success",
         "city": city,
         "prefs": user_prefs,
-        "recommendations": recommendations,
-        # "summary": summary
+        "recommendations": recommendations
     }
 
     # persist latest submission in memory so frontend Map/Sidebar can fetch it

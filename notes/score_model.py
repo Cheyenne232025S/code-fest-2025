@@ -88,6 +88,7 @@ def main(user_prefs=None):
     # -----------------------------
     # 3) User prefs (tweak freely)
     # -----------------------------
+    incoming_weights = restaurants.get("weights")
     if user_prefs is None:
         user_prefs = {
             # Distance half-life in meters: the distance component halves at this distance
@@ -97,7 +98,7 @@ def main(user_prefs=None):
             # Allowed price levels (1..4). Empty list => ignore price
             "price_levels": [1, 2, 3], # multi choice; number of $$$
             # Feature weights (must sum to 1)
-            "weights": {
+            "weights": incoming_weights or {
                 "distance": 0.35,
                 "rating":   0.35,
                 "price":    0.15,

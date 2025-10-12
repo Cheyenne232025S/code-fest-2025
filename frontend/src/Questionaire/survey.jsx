@@ -28,7 +28,7 @@ function Survey() {
       id: 4,
       text: "Cuisine Preference?",
       type: "multiple",
-      options: ["Italian", "Chinese", "Mexican", "Greek", "Halal", "French", "Thai", "Korean"],
+      options: ["Sandwiches", "Breakfast/Brunch", "Pizza", "Italian", "Chinese", "Mexican", "Medaterranean", "Halal", "French", "Thai", "Korean", "Gluten Free"],
     },
     {
       id: 5, 
@@ -100,6 +100,7 @@ function Survey() {
     }
   };
 
+
   // Helper: return true only if every question has an answer (text must be non-empty)
   const allAnswered = () => {
     return questions.every((q) => {
@@ -126,6 +127,7 @@ function Survey() {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       answers: normalizedAnswers,
+      weights,
     };
 
     try {
@@ -161,9 +163,9 @@ function Survey() {
   return (
     <div className="survey-container">
       <div className="survey-card">
-        <h1 className="survey-title">Travel Survey</h1>
+        <h2 className="survey-title">Travel Survey</h2>
           <div className="survey-intro">
-                <h2 style={{ color: "#B41F3A" }}>Welcome!</h2>
+                <h3 style={{ color: "#B41F3A" }}>Welcome!</h3>
                 <p style={{ color: "#B41F3A" }}>
                   Help us personalize your travel experience. This quick survey takes less than a minute.
                 </p>
@@ -227,7 +229,7 @@ function Survey() {
                         </div>
                       )}
 
-
+                      <div className="question-separator"></div>
                       
                     </div>
                   </div>
@@ -276,7 +278,10 @@ function Survey() {
             </div>
           </div>
 
+          
+
   );
+          
 }
 
 
