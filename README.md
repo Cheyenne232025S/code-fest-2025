@@ -33,9 +33,4 @@ Below are the three key diagrams that describe the system’s design.
 </p>
 
 
-### 🧠API
 
-Our 'app/main.py' script serves as a simple API:
-- It loads datasets from '/data/'
-- It filters data by user input (e.g., state name)
-- It prints or returns results for analysis
