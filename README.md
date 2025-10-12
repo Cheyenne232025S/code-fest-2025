@@ -15,7 +15,16 @@
 
 ## 🏗️ Architecture Overview
 
-### 🧭 System Diagram
+Below are the three key diagrams that describe the system’s design.
+
+### 1️⃣ System Diagram
+![System Architecture Overview](images/system-diagram.svg)
+
+### 2️⃣ Data & Scoring Flow
+![Data and Scoring Flow](images/data-flow-diagram.svg)
+
+### 3️⃣ Deployment Overview
+![Deployment Overview](images/deployment-diagram.svg)
 
 
 ### 🧠API
