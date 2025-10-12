@@ -4,8 +4,8 @@ import "./questionaireHeader.css";
 function QuestionaireHeader() {
   return (
     <div className="questionaireHeader-container">
-      <h1>Testing</h1>
-      <p></p>
+      <img src="Mariott2.png" alt="Logo" className="questionaireHeader-logo" />
+      <h1 className="questionaireHeader-title">Restaurant Survey</h1>
     </div>
   );
 }
