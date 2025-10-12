@@ -1,0 +1,37 @@
+.about-page {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial;
+  color: #fff; /* changed to white */
+}
+
+/* ensure every descendant text inside .about-page is white */
+.about-page, .about-page * {
+  color: #fff !important;
+}
+
+.about-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+}
+
+.about-team h2 {
+  margin-top: 20px;
+}
+
+.about-nav {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+}
+
+/* keep nav links white */
+.about-nav a {
+  text-decoration: none;
+  color: #fff;
+  background: #1976d2;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
