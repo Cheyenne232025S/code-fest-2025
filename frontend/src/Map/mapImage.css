@@ -2,6 +2,7 @@
 .info-window {
   max-width: 200px;
   font-family: Arial, sans-serif;
+  padding-top: 10px; /* Added top padding */
 }
 
 .info-window h4 {
@@ -12,6 +13,28 @@
 .info-window p {
   margin: 2px 0;
   font-size: 14px;
+}
+
+/* Custom Info Window Styles */
+.custom-info-window {
+  font-family: Arial, sans-serif;
+  z-index: 10;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+  will-change: transform, opacity;
+}
+
+.custom-info-window h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.custom-info-window button:hover span {
+  color: #555;
+}
+
+.custom-info-window.fade-out {
+  opacity: 0;
 }
 
 /* ensure the map area occupies remaining viewport space (below header, right of sidebar) */
