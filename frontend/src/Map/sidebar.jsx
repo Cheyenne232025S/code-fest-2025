@@ -9,6 +9,25 @@ function Sidebar() {
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmError, setLlmError] = useState(null);
 
+  // New: expanded hotel ids (to show restaurants)
+  const [expanded, setExpanded] = useState([]);
+
+  const toggleExpanded = (id) => {
+    setExpanded((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const parseRestaurants = (raw) => {
+    if (!raw) return [];
+    try {
+      if (typeof raw === "string") return JSON.parse(raw);
+      if (Array.isArray(raw)) return raw;
+      return [];
+    } catch (e) {
+      console.warn("Failed to parse top_restaurants for hotel:", e);
+      return [];
+    }
+  };
+
   const fetchLLM = async () => {
     setLlmLoading(true);
     setLlmError(null);
@@ -50,6 +69,107 @@ function Sidebar() {
     };
   }, []);
 
+  // New: render a clean recommendations view when submission has recommendations
+  const renderRecommendations = () => {
+    if (!submission?.recommendations?.top_hotels) return null;
+    const recs = submission.recommendations;
+    const hotels = recs.top_hotels;
+    const hotelIds = Object.keys(hotels.hotel_name ?? {});
+    if (!hotelIds.length) return null;
+
+    return (
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ marginBottom: 8 }}>
+          <strong>Recommendations</strong>
+          <div style={{ fontSize: 13, color: "#444" }}>
+            {submission.city ? `${submission.city}` : null}
+            {submission.prefs ? ` — top ${submission.prefs.top_k ?? "N/A"}` : null}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {hotelIds.map((id) => {
+            const name = hotels.hotel_name[id] ?? "Unnamed";
+            const score = hotels.score?.[id];
+            const neighborhood = hotels.neighborhood?.[id];
+            const address = hotels.address?.[id];
+            const brand = hotels.brand?.[id];
+            const lat = hotels.lat?.[id];
+            const lon = hotels.lon?.[id];
+
+            const restaurants = parseRestaurants(hotels.top_restaurants?.[id]);
+
+            return (
+              <div
+                key={id}
+                style={{
+                  border: "1px solid #e6e6e6",
+                  padding: 10,
+                  borderRadius: 6,
+                  background: "#fff",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{name}</div>
+                    <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                      {brand ? `${brand} • ` : ""}
+                      {neighborhood ? `${neighborhood}` : ""}
+                      {address ? ` • ${address}` : ""}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                      {typeof score !== "undefined" ? `Score: ${Number(score).toFixed(3)}` : null}
+                      {lat && lon ? ` • (${lat.toFixed(5)}, ${lon.toFixed(5)})` : ""}
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button
+                      onClick={() => toggleExpanded(id)}
+                      className="btn btn-outline"
+                      style={{ padding: "6px 10px" }}
+                    >
+                      {expanded.includes(id) ? "Hide restaurants" : `Show ${restaurants.length} restaurants`}
+                    </button>
+                  </div>
+                </div>
+
+                {expanded.includes(id) && (
+                  <div style={{ marginTop: 10 }}>
+                    {restaurants.length ? (
+                      <ul style={{ margin: 0, paddingLeft: 18 }}>
+                        {restaurants.map((r, i) => (
+                          <li key={i} style={{ marginBottom: 6 }}>
+                            <div style={{ fontWeight: 600 }}>{r.name ?? "Unnamed"}</div>
+                            <div style={{ fontSize: 12, color: "#555" }}>
+                              {r.rating ? `${r.rating}★` : ""}
+                              {r.price ? ` • ${r.price}` : ""}
+                              {r.distance_m ? ` • ${Math.round(r.distance_m)} m` : ""}
+                              {r.cuisines ? ` • ${Array.isArray(r.cuisines) ? r.cuisines.join(", ") : r.cuisines}` : ""}
+                            </div>
+                            {r.url ? (
+                              <div style={{ marginTop: 4 }}>
+                                <a href={r.url} target="_blank" rel="noreferrer" style={{ fontSize: 12 }}>
+                                  View on Yelp
+                                </a>
+                              </div>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div style={{ fontSize: 13, color: "#666" }}>No restaurants found for this hotel.</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="sidebar-container">
       <h1>Sidebar</h1>
@@ -66,6 +186,9 @@ function Sidebar() {
           </pre>
         )}
       </div>
+
+      {/* New: clean recommendations UI */}
+      {renderRecommendations()}
 
       {/* short decorative divider (65px line + content) */}
       <div
