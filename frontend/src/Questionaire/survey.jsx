@@ -228,8 +228,6 @@ function Survey() {
                           <div style={{ color: "#B41F3A" }}>{answers[q.id]?.[0] || 0} miles</div>
                         </div>
                       )}
-
-
                       
                     </div>
                   </div>
