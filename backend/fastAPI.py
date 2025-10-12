@@ -73,9 +73,9 @@ def submit_response(response: SurveyResponse):
 
     # --- 1️⃣ Extract survey answers ---
     city = answers.get("1")[0]
-    distance_pref_miles = float(answers.get("2")[0]) #??
+    distance_pref_miles = answers.get("2")[0]
     # travel_reason = answers.get("3")[0]
-    cuisines = answers.get("4")
+    cuisines = answers.get("4")[0]
     rating_pref = answers.get("5")[0]
     price_pref = answers.get("6")[0]
 
