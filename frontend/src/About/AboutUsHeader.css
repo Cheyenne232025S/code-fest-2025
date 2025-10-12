@@ -1,0 +1,42 @@
+.about-header-bar {
+  /* make header span the entire viewport width while staying positioned within the page flow */
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* center the title */
+  padding: 12px 0; /* no side padding so button can be flush to edge */
+  padding-left: 10px; /* added: 10px left padding */
+  box-sizing: border-box;
+  gap: 12px;
+}
+
+/* place the back button at the very left of the viewport (inside the full-width header) */
+.about-back-btn {
+  position: absolute;
+  left: 30px; /* changed from 0 to 10px to respect left padding */
+  /* keep visual styling */
+  text-decoration: none;
+  color: #fff;
+  background: #1976d2;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: background 0.15s ease, transform 0.08s ease;
+  display: inline-block;
+  margin: 0; /* remove previous auto margin */
+  z-index: 10;
+}
+
+.about-back-btn:hover {
+  background: #155fa8;
+  transform: translateY(-1px);
+}
+
+.about-title {
+  margin: 0 auto; /* center the title within the full-width header */
+  font-size: 28px;
+  font-weight: 600;
+  color: inherit; /* follow page color */
+}
