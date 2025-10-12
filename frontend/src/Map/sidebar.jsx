@@ -8,8 +8,6 @@ function Sidebar() {
   const [llmData, setLlmData] = useState(null);
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmError, setLlmError] = useState(null);
-<<<<<<< HEAD
-
   // New: expanded hotel ids (to show restaurants)
   const [expanded, setExpanded] = useState([]);
 
@@ -29,9 +27,6 @@ function Sidebar() {
     }
   };
 
-=======
-    
->>>>>>> c70b0b03478fc5387b8179f68be7dc1cc8be2ebb
   const fetchLLM = async () => {
     setLlmLoading(true);
     setLlmError(null);
