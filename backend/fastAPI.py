@@ -129,36 +129,25 @@ def submit_response(response: SurveyResponse):
     try:
         recommendations = main(user_prefs)  # make sure main() accepts user_prefs as arg
         # generate a short summary for the UI using the raw answers map
-        try:
-            payload = {
+
+        payload = {
             "status": "success",
             "city": city,
             "prefs": user_prefs,
-            "recommendations": recommendations
+            "recommendations": recommendations,
         }
-            summary = generate_summary_with_gemini(payload)
-        except Exception:
-            summary = None
+        # persist latest submission in memory so frontend Map/Sidebar can fetch it
+        LAST_SUBMISSION = payload
+        return payload
     except Exception as e:
         payload = {
             "status": "error",
-            "message": f"Scoring model failed: {str(e)}",
-            "prefs": user_prefs
+            "message": str(e)
         }
         LAST_SUBMISSION = payload
         return payload
 
-    payload = {
-        "status": "success",
-        "city": city,
-        "prefs": user_prefs,
-        "recommendations": recommendations,
-        "summary": summary
-    }
-
-    # persist latest submission in memory so frontend Map/Sidebar can fetch it
-    LAST_SUBMISSION = payload
-    return payload
+    
 
 # New endpoint: return the last submission (if any)
 @app.get("/results/")

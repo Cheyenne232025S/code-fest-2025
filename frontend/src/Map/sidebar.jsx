@@ -167,11 +167,7 @@ function Sidebar() {
     return (
       <div style={{ marginBottom: 12,fontFamily: "Playfair Display, serif"  }}>
         <div style={{ marginBottom: 8 }}>
-          <strong >Recommendations</strong>
-          <div style={{ fontSize: 13, color: "#444", fontFamily: "Playfair Display, serif" }}>
-            {submission.city ? `${submission.city}` : null}
-            {submission.prefs ? ` — Top ${submission.prefs.top_k ?? "N/A"}` : null}
-          </div>
+          <strong>Recommendations</strong>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -270,7 +266,14 @@ function Sidebar() {
         </button>
         {llmError && <div style={{ color: "crimson", marginTop: 8 }}>Error: {llmError}</div>}
         {llmData && (
-          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", marginTop: 8 }}>
+          <pre
+            style={{
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              marginTop: 8,
+              fontSize: "0.85rem" // smaller font for LLM response
+            }}
+          >
             {typeof llmData === "string" ? llmData : JSON.stringify(llmData, null, 2)}
           </pre>
         )}
@@ -287,16 +290,7 @@ function Sidebar() {
         aria-orientation="horizontal"
       >
         <span className="divider-line" aria-hidden="true" />
-        <div className="divider-content">
-          {/* print submission here */}
-          {submission ? (
-            <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0 }}>
-              {JSON.stringify(submission, null, 2)}
-            </pre>
-          ) : (
-            <div> No survey data found. Submit the survey to populate this section. </div>
-          )}
-        </div>
+        
       </div>
 
       {/* ...existing code... */}
@@ -308,10 +302,6 @@ function Sidebar() {
         role="separator"
         aria-orientation="horizontal"
       >
-        <span className="divider-line" aria-hidden="true" />
-        <div className="divider-content">
-          <p>Additional section content.</p>
-        </div>
       </div>
     </div>
   );
