@@ -18,8 +18,8 @@ export default function MapImage() {
   const [localError, setLocalError] = useState(null);
   const [center, setCenter] = useState(DEFAULT_COORDS);
 
-  // NEW: circle radius state (meters)
-  const [circleRadius, setCircleRadius] = useState(1000);
+  // NEW: circle radius state (meters) — null means "no circle shown"
+  const [circleRadius, setCircleRadius] = useState(null);
 
   // parse restaurants JSON stored as strings in the backend payload
   const parseRestaurants = (raw) => {
@@ -398,12 +398,14 @@ export default function MapImage() {
             );
           })}
 
-          {/* Circle around center (optional) */}
-          <Circle
-            center={center}
-            radius={circleRadius}
-            options={{ fillColor: "blue", fillOpacity: 0.001, strokeColor: "blue" }}
-          />
+          {/* Circle around selected hotel only */}
+          {selected && selected.type === "hotel" && circleRadius != null ? (
+            <Circle
+              center={center}
+              radius={circleRadius}
+              options={{ fillColor: "blue", fillOpacity: 0.001, strokeColor: "blue" }}
+            />
+          ) : null}
 
           {/* InfoWindow */}
           {selected && (
