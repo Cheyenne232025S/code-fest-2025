@@ -69,7 +69,8 @@ Below are the three key diagrams that describe the system’s design.
 - **Batch processing** for scoring model → fast API lookups  
 - **Pagination** & **top-K results** limit payload size  
 - Future option: add **Redis cache** for repeated queries  
-- Designed for deployment on **Render / Railway / Docker**  
+- Designed for deployment on **Render / Railway / Docker**
+- With more available data the model can be ran for other cities
 
 ---
 
