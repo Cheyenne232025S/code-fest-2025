@@ -163,9 +163,9 @@ function Survey() {
   return (
     <div className="survey-container">
       <div className="survey-card">
-        <h1 className="survey-title">Travel Survey</h1>
+        <h2 className="survey-title">Travel Survey</h2>
           <div className="survey-intro">
-                <h2 style={{ color: "#B41F3A" }}>Welcome!</h2>
+                <h3 style={{ color: "#B41F3A" }}>Welcome!</h3>
                 <p style={{ color: "#B41F3A" }}>
                   Help us personalize your travel experience. This quick survey takes less than a minute.
                 </p>
@@ -228,6 +228,8 @@ function Survey() {
                           <div style={{ color: "#B41F3A" }}>{answers[q.id]?.[0] || 0} miles</div>
                         </div>
                       )}
+
+                      <div className="question-separator"></div>
                       
                     </div>
                   </div>
@@ -276,7 +278,10 @@ function Survey() {
             </div>
           </div>
 
+          
+
   );
+          
 }
 
 
