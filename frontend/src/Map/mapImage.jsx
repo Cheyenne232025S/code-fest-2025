@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./mapImage.css";
-import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Marker, OverlayView } from "@react-google-maps/api";
 
 const apiKey = "AIzaSyB7Zae46biejYBCoiiTiFkBlt47JPqve4o";
 const DEFAULT_COORDS = { lat: 37.4221, lng: -122.0841, address: "Default location (approx)" };
@@ -13,6 +13,7 @@ export default function MapImage() {
   const [localError, setLocalError] = useState(null);
   const [center, setCenter] = useState(DEFAULT_COORDS);
   const [circleRadius, setCircleRadius] = useState(null);
+  const [infoFading, setInfoFading] = useState(false);
 
   const mapRef = useRef(null);
   const lastSelectRef = useRef(0);
@@ -94,27 +95,74 @@ export default function MapImage() {
   };
 
   const zoomToRadius = (mapInstance, centerObj, radiusMeters) => {
-    if (!mapInstance || !centerObj) return;
-    try {
-      if (window.google?.maps?.geometry?.spherical) {
-        const centerLatLng = new window.google.maps.LatLng(centerObj.lat, centerObj.lng);
-        const bearings = [0, 90, 180, 270];
-        const bounds = new window.google.maps.LatLngBounds();
-        bounds.extend(centerLatLng);
-        bearings.forEach((b) => {
-          const pt = window.google.maps.geometry.spherical.computeOffset(centerLatLng, radiusMeters, b);
-          bounds.extend(pt);
-        });
-        mapInstance.fitBounds(bounds);
-        window.google.maps.event.addListenerOnce(mapInstance, "idle", () => {
-          const currentZoom = mapInstance.getZoom?.();
-          if (currentZoom > 19) mapInstance.setZoom(19);
-          mapInstance.panTo(centerObj);
-        });
+    if (!mapInstance || !centerObj) return Promise.resolve();
+    return new Promise((resolve) => {
+      try {
+        if (window.google?.maps?.geometry?.spherical) {
+          const centerLatLng = new window.google.maps.LatLng(centerObj.lat, centerObj.lng);
+          const bearings = [0, 90, 180, 270];
+          const bounds = new window.google.maps.LatLngBounds();
+          bounds.extend(centerLatLng);
+          bearings.forEach((b) => {
+            const pt = window.google.maps.geometry.spherical.computeOffset(centerLatLng, radiusMeters, b);
+            bounds.extend(pt);
+          });
+          mapInstance.fitBounds(bounds);
+          // after fitBounds finishes, smoothly pan to the exact center
+          window.google.maps.event.addListenerOnce(mapInstance, "idle", () => {
+            const currentZoom = mapInstance.getZoom?.();
+            if (currentZoom > 19) mapInstance.setZoom(19);
+            // use smooth pan (helper defined below)
+            smoothPanTo(mapInstance, { lat: centerObj.lat, lng: centerObj.lng }, 1000).then(resolve).catch(resolve);
+          });
+          return;
+        }
+      } catch (err) {
+        console.warn("zoomToRadius failed:", err);
       }
-    } catch (err) {
-      console.warn("zoomToRadius failed:", err);
+      // fallback: just smooth pan
+      smoothPanTo(mapInstance, { lat: centerObj.lat, lng: centerObj.lng }, 700).then(resolve).catch(resolve);
+    });
+  };
+
+  // Smoothly pan the map from its current center to target {lat,lng} over duration(ms).
+  const smoothPanTo = (mapInstance, targetLatLng, duration = 600) => {
+    if (!mapInstance || !targetLatLng) return Promise.resolve();
+    const target = { lat: Number(targetLatLng.lat), lng: Number(targetLatLng.lng) };
+    const startCenterObj = mapInstance.getCenter?.();
+    if (!startCenterObj) {
+      // immediate pan if we can't read current center
+      mapInstance.panTo(target);
+      return Promise.resolve();
     }
+    const start = { lat: startCenterObj.lat(), lng: startCenterObj.lng() };
+    const deltaLat = target.lat - start.lat;
+    const deltaLng = target.lng - start.lng;
+    let startTime = null;
+    return new Promise((resolve) => {
+      const step = (ts) => {
+        if (!startTime) startTime = ts;
+        const elapsed = ts - startTime;
+        const t = Math.min(1, elapsed / duration);
+        // easeInOutQuad
+        const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        const curLat = start.lat + deltaLat * eased;
+        const curLng = start.lng + deltaLng * eased;
+        try {
+          mapInstance.panTo({ lat: curLat, lng: curLng });
+        } catch (e) {
+          // if panTo fails, resolve early
+          resolve();
+          return;
+        }
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(step);
+    });
   };
 
   // ✅ Handle selecting hotels/restaurants
@@ -124,20 +172,34 @@ export default function MapImage() {
     if (entity?.type === "hotel") {
       setActiveHotelId(entity.hotelId);
       const newCenter = { lat: entity.lat, lng: entity.lng };
-      setCenter(newCenter);
       const radius = getRadiusFromEntity(entity);
       setCircleRadius(null);
       setCircleRadius(radius);
-      mapRef.current && zoomToRadius(mapRef.current, newCenter, radius);
+      // animate zoom/fit then pan, then update React center state to avoid snapping
+      if (mapRef.current) {
+        zoomToRadius(mapRef.current, newCenter, radius).then(() => {
+          setCenter(newCenter);
+        }).catch(() => {
+          setCenter(newCenter);
+        });
+      } else {
+        setCenter(newCenter);
+      }
+      // show hotel info
+      setInfoFading(false);
+      setSelected(entity);
+    } else {
+      // restaurants or other entities: do NOT pan or change center — just show the popup
+      setInfoFading(false);
+      setSelected(entity);
     }
-
-    setSelected(entity);
   };
 
   // ✅ Clear info window when clicking outside
   useEffect(() => {
     const onDocClick = (e) => {
-      if (e.target.closest(".info-window")) return;
+      // NOTE: the info window element uses the class "custom-info-window"
+      if (e.target.closest(".custom-info-window")) return;
       if (Date.now() - lastSelectRef.current < 250) return;
       if (selected) setSelected(null);
     };
@@ -246,48 +308,161 @@ export default function MapImage() {
             );
           })}
 
-          {/* ℹ️ Info Window */}
+          {/* Custom Info Window with OverlayView */}
           {selected && (
-            <InfoWindow
-              position={{ lat: selected.lat, lng: selected.lng }}
-              onCloseClick={() => setSelected(null)}
+            <OverlayView
+              // Force re-render when position changes so the overlay recalculates placement
+              key={`ov-${Number(selected.lat)}-${Number(selected.lng)}-${selected.type}-${selected.hotelId ?? ""}`}
+              // Use a google.maps.LatLng when available (more robust), otherwise a literal
+              position={
+                window.google && window.google.maps && window.google.maps.LatLng
+                  ? new window.google.maps.LatLng(Number(selected.lat), Number(selected.lng))
+                  : { lat: Number(selected.lat), lng: Number(selected.lng) }
+              }
+              mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+              // Let CSS handle centering/anchoring; avoid relying on width/height params
+              getPixelPositionOffset={() => ({ x: 0, y: 0 })}
             >
-              <div className="info-window" style={{ maxWidth: 280 }}>
-                {selected.type === "hotel" ? (
-                  <>
-                    <h4>🏨 {selected.name}</h4>
-                    {selected.address && <div>{selected.address}</div>}
-                    {selected.score && <div>Score: {Number(selected.score).toFixed(3)}</div>}
-                    <div style={{ marginTop: 8 }}>
-                      <button className="btn btn-outline">
-                        Show {selected.restaurants?.length ?? 0} restaurants
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h4>🍴 {selected.name}</h4>
-                    {selected.rating && <div>Rating: {selected.rating}★</div>}
-                    {selected.price && <div>Price: {selected.price}</div>}
-                    {selected.distance_m && <div>Distance: {Math.round(selected.distance_m)} m</div>}
-                    {selected.cuisines && (
-                      <div>
-                        {Array.isArray(selected.cuisines)
-                          ? selected.cuisines.join(", ")
-                          : selected.cuisines}
-                      </div>
-                    )}
-                    {selected.url && (
-                      <div style={{ marginTop: 6 }}>
-                        <a href={selected.url} target="_blank" rel="noreferrer">
-                          View on Yelp
-                        </a>
-                      </div>
-                    )}
-                  </>
-                )}
+              <div
+                className={`custom-info-window ${infoFading ? "fade-out" : ""}`}
+                style={{
+                  background: "white",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+                  minWidth: "200px",
+                  maxWidth: "280px",
+                  // Make the element's top-left be the map pixel, then translate
+                  // so the bottom-center aligns to that pixel and shift up 10px:
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  transform: "translate(-50%, calc(-100% - 10px))",
+                  color: "black",
+                  willChange: "transform",
+                }}
+                // prevent clicks inside the window from bubbling and closing it
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Custom Close Button */}
+                <button
+                  onClick={(e) => {
+                    // prevent bubbling to the document click handler
+                    e.stopPropagation();
+                    setSelected(null);
+                  }}
+                  style={{
+                    position: "absolute",
+                    top: "8px",
+                    right: "8px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "24px",
+                    height: "24px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "18px",
+                      lineHeight: 1,
+                      color: "black",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    ×
+                  </span>
+                </button>
+
+                {/* Content */}
+                <div style={{ paddingTop: "10px", paddingRight: "20px" }}>
+                  {selected.type === "hotel" ? (
+                    <>
+                      <h4 style={{ color: "black", marginTop: 0 }}>
+                        🏨 {selected.name}
+                      </h4>
+                      {selected.address && (
+                        <div style={{ color: "black" }}>{selected.address}</div>
+                      )}
+                      {selected.score && (
+                        <div style={{ color: "black" }}>
+                          Score: {Number(selected.score).toFixed(3)}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <h4 style={{ color: "black", marginTop: 0 }}>
+                        🍴 {selected.name}
+                      </h4>
+                      {selected.rating && (
+                        <div style={{ color: "black" }}>
+                          Rating: {selected.rating}★
+                        </div>
+                      )}
+                      {selected.price && (
+                        <div style={{ color: "black" }}>Price: {selected.price}</div>
+                      )}
+                      {selected.distance_m && (
+                        <div style={{ color: "black" }}>
+                          Distance:{" "}
+                          {(Number(selected.distance_m) / 1600).toFixed(2)} miles
+                        </div>
+                      )}
+                      {selected.cuisines && (
+                        <div style={{ color: "black" }}>
+                          Cuisine:{" "}
+                          {Array.isArray(selected.cuisines)
+                            ? selected.cuisines
+                                .map(
+                                  (c) =>
+                                    c.charAt(0).toUpperCase() + c.slice(1)
+                                )
+                                .join(", ")
+                            : selected.cuisines
+                                .split(",")
+                                .map(
+                                  (c) =>
+                                    c.trim().charAt(0).toUpperCase() +
+                                    c.trim().slice(1)
+                                )
+                                .join(", ")}
+                        </div>
+                      )}
+                      {selected.url && (
+                        <div style={{ marginTop: 6 }}>
+                          <a
+                            href={selected.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: "#0066cc" }}
+                          >
+                            View on Yelp
+                          </a>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Triangle pointer at bottom */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "-10px",
+                    left: "50%",
+                    marginLeft: "-10px",
+                    borderLeft: "10px solid transparent",
+                    borderRight: "10px solid transparent",
+                    borderTop: "10px solid white",
+                  }}
+                />
               </div>
-            </InfoWindow>
+            </OverlayView>
           )}
         </GoogleMap>
       </div>
