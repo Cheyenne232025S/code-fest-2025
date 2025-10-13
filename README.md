@@ -39,10 +39,9 @@ Below are the three key diagrams that describe the system’s design.
 - **Design:** Each layer is isolated — frontend handles presentation, backend handles logic, and the model runs scoring separately.
 - **Reusable components:** CSV outputs and data loaders can be swapped for future APIs or database integrations.
 - **Organization:**  
-  `/app/` → API + model logic  
   `/data/` → clean inputs/outputs  
   `/images/` → architecture diagrams  
-  `/notes/` → analysis + exploration notebooks  
+  `/notes/` → API + model logic  
 
 ---
 
